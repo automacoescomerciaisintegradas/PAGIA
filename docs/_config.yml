@@ -1,0 +1,38 @@
+# PAGIA Documentation - GitHub Pages Configuration
+title: PAGIA
+description: Plano de Ação de Gestão e Implementação com IA
+theme: jekyll-theme-cayman
+baseurl: "/PAGIA"
+url: "https://automacoescomerciaisintegradas.github.io"
+
+# Author
+author:
+  name: Automações Comerciais Integradas
+  email: automacoescomerciais@gmail.com
+
+# Social
+github_username: automacoescomerciaisintegradas
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name
+
+# Navigation
+nav:
+  - title: Início
+    url: /
+  - title: Instalação
+    url: /installation
+  - title: Comandos
+    url: /commands
+  - title: Agentes
+    url: /agents
+  - title: API
+    url: /api
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
