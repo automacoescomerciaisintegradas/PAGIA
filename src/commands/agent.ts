@@ -178,10 +178,11 @@ agentCommand
                 agent.instructions = generateDefaultInstructions(agent);
             }
 
-            // Determine save location
+            // Determine save location - sanitize module name for filesystem
+            const sanitizedModule = sanitizeFilename(answers.module);
             const agentsFolder = answers.module === 'core'
                 ? join(configManager.getPagiaFolder(), 'core', 'agents')
-                : join(configManager.getPagiaFolder(), 'modules', answers.module, 'agents');
+                : join(configManager.getPagiaFolder(), 'modules', sanitizedModule, 'agents');
 
             if (!existsSync(agentsFolder)) {
                 mkdirSync(agentsFolder, { recursive: true });
