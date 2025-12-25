@@ -17,6 +17,8 @@ import { getConfigManager } from '../core/config-manager.js';
 import { logger } from '../utils/logger.js';
 import { pagiaNetwork } from '../agents/inngest-network.js';
 import { ingestTool } from '../utils/ingest-tool.js';
+import { getN8NClient, N8NConfig } from '../utils/n8n-client.js';
+import { getN8NMCPClient, N8NMCPConfig } from '../utils/n8n-mcp-client.js';
 
 export interface MCPTool {
     name: string;
@@ -466,6 +468,279 @@ export class MCPServer {
                     preview: result.content?.substring(0, 500),
                     error: result.error,
                 };
+            },
+        });
+
+        // ========================================
+        // Ferramentas de integração com N8N
+        // ========================================
+
+        // Ferramenta: Configurar N8N
+        this.registerTool({
+            name: 'pagia.n8n.configure',
+            description: 'Configura a conexão com o N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    baseUrl: { type: 'string', description: 'URL base do N8N (ex: http://localhost:5678)' },
+                    apiKey: { type: 'string', description: 'API Key do N8N (opcional)' },
+                },
+                required: ['baseUrl'],
+            },
+            handler: async (params) => {
+                const config: N8NConfig = {
+                    baseUrl: params.baseUrl as string,
+                    apiKey: params.apiKey as string | undefined,
+                };
+                const client = getN8NClient(config);
+                const test = await client.testConnection();
+                return test;
+            },
+        });
+
+        // Ferramenta: Listar ferramentas do N8N
+        this.registerTool({
+            name: 'pagia.n8n.listTools',
+            description: 'Lista todas as ferramentas/nodes disponíveis nos workflows ativos do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    baseUrl: { type: 'string', description: 'URL base do N8N (opcional se já configurado)' },
+                    apiKey: { type: 'string', description: 'API Key do N8N (opcional)' },
+                },
+            },
+            handler: async (params) => {
+                let client = getN8NClient();
+
+                // Se forneceu URL, reconfigurar
+                if (params.baseUrl) {
+                    client = getN8NClient({
+                        baseUrl: params.baseUrl as string,
+                        apiKey: params.apiKey as string | undefined,
+                    });
+                }
+
+                const tools = await client.listTools();
+                return {
+                    count: tools.length,
+                    tools: tools.map(t => ({
+                        name: t.name,
+                        description: t.description,
+                        workflowName: t.workflowName,
+                        nodeType: t.nodeType,
+                        parameters: t.parameters,
+                    })),
+                };
+            },
+        });
+
+        // Ferramenta: Listar workflows do N8N
+        this.registerTool({
+            name: 'pagia.n8n.listWorkflows',
+            description: 'Lista todos os workflows do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    activeOnly: { type: 'boolean', description: 'Listar apenas workflows ativos' },
+                },
+            },
+            handler: async (params) => {
+                const client = getN8NClient();
+                let workflows = await client.listWorkflows();
+
+                if (params.activeOnly) {
+                    workflows = workflows.filter(w => w.active);
+                }
+
+                return {
+                    count: workflows.length,
+                    workflows: workflows.map(w => ({
+                        id: w.id,
+                        name: w.name,
+                        active: w.active,
+                        updatedAt: w.updatedAt,
+                    })),
+                };
+            },
+        });
+
+        // Ferramenta: Chamar webhook do N8N
+        this.registerTool({
+            name: 'pagia.n8n.callWebhook',
+            description: 'Chama um webhook do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    path: { type: 'string', description: 'Path do webhook (sem /webhook/)' },
+                    data: { type: 'object', description: 'Dados a enviar para o webhook' },
+                    method: { type: 'string', enum: ['GET', 'POST'], description: 'Método HTTP (default: POST)' },
+                },
+                required: ['path'],
+            },
+            handler: async (params) => {
+                const client = getN8NClient();
+                const result = await client.callWebhook(
+                    params.path as string,
+                    params.data as Record<string, unknown>,
+                    (params.method as 'GET' | 'POST') || 'POST'
+                );
+                return result;
+            },
+        });
+
+        // Ferramenta: Executar workflow do N8N
+        this.registerTool({
+            name: 'pagia.n8n.executeWorkflow',
+            description: 'Executa um workflow do N8N por ID',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    workflowId: { type: 'string', description: 'ID do workflow' },
+                    data: { type: 'object', description: 'Dados de entrada para o workflow' },
+                },
+                required: ['workflowId'],
+            },
+            handler: async (params) => {
+                const client = getN8NClient();
+                const result = await client.executeWorkflow(
+                    params.workflowId as string,
+                    params.data as Record<string, unknown>
+                );
+                return {
+                    executionId: result.id,
+                    status: result.status,
+                    finished: result.finished,
+                };
+            },
+        });
+
+        // Ferramenta: Testar conexão N8N
+        this.registerTool({
+            name: 'pagia.n8n.testConnection',
+            description: 'Testa a conexão com o N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    baseUrl: { type: 'string', description: 'URL base do N8N (opcional se já configurado)' },
+                    apiKey: { type: 'string', description: 'API Key do N8N (opcional)' },
+                },
+            },
+            handler: async (params) => {
+                let client = getN8NClient();
+
+                if (params.baseUrl) {
+                    client = getN8NClient({
+                        baseUrl: params.baseUrl as string,
+                        apiKey: params.apiKey as string | undefined,
+                    });
+                }
+
+                return await client.testConnection();
+            },
+        });
+
+        // ========================================
+        // Ferramentas MCP para servidor MCP do N8N
+        // ========================================
+
+        // Ferramenta: Configurar conexão MCP com N8N
+        this.registerTool({
+            name: 'pagia.n8n.mcp.configure',
+            description: 'Configura conexão com o servidor MCP do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    mcpUrl: { type: 'string', description: 'URL do servidor MCP do N8N (ex: https://n8n.example.com/mcp-server/http)' },
+                    authToken: { type: 'string', description: 'Token de autenticação (Bearer token ou API Key)' },
+                    authType: { type: 'string', enum: ['bearer', 'header'], description: 'Tipo de autenticação (default: bearer)' },
+                },
+                required: ['mcpUrl'],
+            },
+            handler: async (params) => {
+                const config: N8NMCPConfig = {
+                    mcpUrl: params.mcpUrl as string,
+                    authToken: params.authToken as string | undefined,
+                    authType: (params.authType as 'bearer' | 'header') || 'bearer',
+                };
+                const client = getN8NMCPClient(config);
+                const test = await client.testConnection();
+                return test;
+            },
+        });
+
+        // Ferramenta: Listar tools do servidor MCP do N8N
+        this.registerTool({
+            name: 'pagia.n8n.mcp.listTools',
+            description: 'Lista todas as ferramentas disponíveis no servidor MCP do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    mcpUrl: { type: 'string', description: 'URL do servidor MCP do N8N (opcional se já configurado)' },
+                    authToken: { type: 'string', description: 'Token de autenticação (opcional se já configurado)' },
+                },
+            },
+            handler: async (params) => {
+                let client = getN8NMCPClient();
+
+                if (params.mcpUrl) {
+                    client = getN8NMCPClient({
+                        mcpUrl: params.mcpUrl as string,
+                        authToken: params.authToken as string | undefined,
+                    });
+                }
+
+                const toolsInfo = await client.getToolsInfo();
+                return {
+                    count: toolsInfo.length,
+                    tools: toolsInfo,
+                };
+            },
+        });
+
+        // Ferramenta: Chamar tool no servidor MCP do N8N
+        this.registerTool({
+            name: 'pagia.n8n.mcp.callTool',
+            description: 'Chama uma ferramenta no servidor MCP do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    toolName: { type: 'string', description: 'Nome da ferramenta a chamar' },
+                    args: { type: 'object', description: 'Argumentos para a ferramenta' },
+                },
+                required: ['toolName'],
+            },
+            handler: async (params) => {
+                const client = getN8NMCPClient();
+                const result = await client.callTool(
+                    params.toolName as string,
+                    params.args as Record<string, unknown>
+                );
+                return result;
+            },
+        });
+
+        // Ferramenta: Testar conexão MCP com N8N
+        this.registerTool({
+            name: 'pagia.n8n.mcp.testConnection',
+            description: 'Testa a conexão com o servidor MCP do N8N',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    mcpUrl: { type: 'string', description: 'URL do servidor MCP do N8N' },
+                    authToken: { type: 'string', description: 'Token de autenticação' },
+                },
+            },
+            handler: async (params) => {
+                let client = getN8NMCPClient();
+
+                if (params.mcpUrl) {
+                    client = getN8NMCPClient({
+                        mcpUrl: params.mcpUrl as string,
+                        authToken: params.authToken as string | undefined,
+                    });
+                }
+
+                return await client.testConnection();
             },
         });
     }
