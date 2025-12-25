@@ -206,8 +206,97 @@ mcpCommand
                 }, null, 2));
                 break;
 
+            case 'n8n':
+                console.log(chalk.gray('Configure no N8N MCP Client Node:'));
+                console.log(`
+${chalk.bold('Opção 1: HTTP Transport')}
+URL: http://localhost:${port}
+Transport: HTTP
+
+${chalk.bold('Opção 2: SSE Transport')}
+URL: http://localhost:${port}/sse
+Transport: SSE
+
+${chalk.bold('Ferramentas disponíveis:')}
+- pagia.listAgents
+- pagia.executeAgent
+- pagia.searchKnowledge
+- pagia.status
+- pagia.createNetwork
+- pagia.runNetwork
+- pagia.ingestCode
+- pagia.ingestURL
+`);
+                console.log(chalk.yellow('Nota: Configure as credenciais de API se necessário.'));
+                break;
+
+            case 'gemini':
+            case 'google':
+                console.log(chalk.gray('Para Gemini Code Assist / Google AI Studio:'));
+                console.log(`
+${chalk.bold('Endpoint MCP:')}
+URL: http://localhost:${port}
+RPC: http://localhost:${port}/rpc
+
+${chalk.bold('Para usar via API:')}
+\`\`\`javascript
+const response = await fetch('http://localhost:${port}/rpc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+            name: 'pagia.listAgents',
+            arguments: {}
+        },
+        id: 1
+    })
+});
+\`\`\`
+`);
+                break;
+
+            case 'windsurf':
+            case 'codeium':
+                console.log(chalk.gray('Configure no Windsurf/Codeium:'));
+                console.log(JSON.stringify({
+                    mcpServers: {
+                        pagia: {
+                            serverUrl: `http://localhost:${port}`,
+                            transport: 'http',
+                        },
+                    },
+                }, null, 2));
+                break;
+
+            case 'continue':
+                console.log(chalk.gray('Adicione ao config.json do Continue:'));
+                console.log(JSON.stringify({
+                    mcpServers: [{
+                        name: 'pagia',
+                        transport: {
+                            type: 'http',
+                            url: `http://localhost:${port}`
+                        }
+                    }]
+                }, null, 2));
+                break;
+
             default:
                 logger.warn(`IDE "${ide}" não reconhecida`);
-                logger.info('IDEs suportadas: cursor, vscode, claude');
+                logger.info('IDEs suportadas: cursor, vscode, claude, n8n, gemini, windsurf, continue');
+                console.log(`
+${chalk.bold('Configuração genérica:')}
+URL HTTP: http://localhost:${port}
+URL RPC: http://localhost:${port}/rpc
+WebSocket: ws://localhost:${port}
+
+${chalk.bold('Endpoints disponíveis:')}
+GET  /tools          - Lista ferramentas
+GET  /resources      - Lista recursos
+POST /tools/:name    - Chama ferramenta
+POST /rpc            - JSON-RPC 2.0
+`);
         }
     });
