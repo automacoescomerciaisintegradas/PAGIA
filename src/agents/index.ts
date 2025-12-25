@@ -17,6 +17,13 @@ export { PlannerAgent, plannerAgent } from './specialized/planner-agent.js';
 export { TesterAgent, testerAgent } from './specialized/tester-agent.js';
 export { ConductorAgent, conductorAgent } from './specialized/conductor-agent.js';
 
+// Agentes BMAD Method
+export { AnalystAgent, analystAgent } from './specialized/analyst-agent.js';
+export { ProductOwnerAgent, productOwnerAgent } from './specialized/product-owner-agent.js';
+export { ArchitectAgent, architectAgent } from './specialized/architect-agent.js';
+export { ScrumMasterAgent, scrumMasterAgent } from './specialized/scrum-master-agent.js';
+export { QAAgent, qaAgent } from './specialized/qa-agent.js';
+
 // Integração com Inngest AgentKit
 export { InngestAdapter, inngestAdapter } from './inngest-adapter.js';
 export { PAGIANetwork, pagiaNetwork } from './inngest-network.js';

@@ -443,6 +443,8 @@ MIT © 2025 Automações Comerciais Integradas
 5. Abra um Pull Request
 
 ---
-
+ 
+## Desenvolvido por
 **Automações Comerciais Integradas** ⚙️  
-contato@automacoescomerciais.com.br
+ contato@automacoescomerciais.com.br
+© 2025 Automações Comerciais Integradas. Todos os direitos reservados.

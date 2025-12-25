@@ -11,6 +11,7 @@ import inquirer from 'inquirer';
 import { getConfigManager } from '../core/config-manager.js';
 import { createAIService } from '../core/ai-service.js';
 import { logger } from '../utils/logger.js';
+import { setupBMADAgents, BMAD_AGENTS } from '../scripts/setup-bmad-agents.js';
 import type { Agent } from '../types/index.js';
 
 export const agentCommand = new Command('agent')
@@ -274,6 +275,51 @@ agentCommand
             logger.error(error instanceof Error ? error.message : String(error));
             process.exit(1);
         }
+    });
+
+// Install BMAD agents subcommand
+agentCommand
+    .command('bmad')
+    .description('Instalar agentes BMAD Method (Analyst, PO, Architect, Scrum Master, QA)')
+    .option('-l, --list', 'Apenas listar agentes BMAD disponíveis')
+    .action(async (options) => {
+        if (options.list) {
+            logger.section('Agentes BMAD Method Disponíveis');
+            console.log(chalk.gray('Baseados no BMAD - Breakthrough Method for Agile AI-Driven Development\n'));
+
+            for (const agent of BMAD_AGENTS) {
+                console.log(`  ${chalk.cyan('•')} ${chalk.bold(agent.name)} - ${agent.role}`);
+                console.log(`    ${chalk.gray(agent.description)}`);
+                console.log(`    ${chalk.gray('Comandos:')} ${agent.menu.map(m => m.trigger).join(', ')}\n`);
+            }
+
+            console.log(chalk.yellow('\nPara instalar: pagia agent bmad'));
+            return;
+        }
+
+        const configManager = getConfigManager();
+
+        if (!configManager.isInitialized()) {
+            logger.error('PAGIA não está inicializado.');
+            process.exit(1);
+        }
+
+        logger.section('Instalando Agentes BMAD Method');
+
+        await setupBMADAgents();
+
+        logger.newLine();
+        logger.box(
+            `${chalk.bold('Agentes BMAD instalados!')}
+
+Use os seguintes comandos:
+${chalk.cyan('pagia agent run analyst')} - Análise de mercado
+${chalk.cyan('pagia agent run product-owner')} - PRDs e User Stories
+${chalk.cyan('pagia agent run architect')} - Arquitetura de software
+${chalk.cyan('pagia agent run scrum-master')} - Sprints e gestão ágil
+${chalk.cyan('pagia agent run qa')} - Testes e qualidade`,
+            { title: '✅ Sucesso', borderColor: 'green' }
+        );
     });
 
 // Helper functions

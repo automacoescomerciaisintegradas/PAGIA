@@ -39,9 +39,9 @@ export interface AgentKitAgent {
  * Mapeamento de provedores para funções de criação de modelo AgentKit
  */
 const MODEL_CREATORS = {
-    gemini: (model: string) => gemini({ model, defaultParameters: {} }),
-    openai: (model: string) => openai({ model, defaultParameters: {} }),
-    anthropic: (model: string) => anthropic({ model, defaultParameters: {} }),
+    gemini: (model: string) => gemini({ model, defaultParameters: {} as any }),
+    openai: (model: string) => openai({ model, defaultParameters: {} as any }),
+    anthropic: (model: string) => anthropic({ model, defaultParameters: {} as any }),
 };
 
 /**
