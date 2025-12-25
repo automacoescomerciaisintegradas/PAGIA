@@ -82,14 +82,30 @@ class Logger {
      * Start a spinner with a message
      */
     spin(message: string): Ora {
+        const isWindows = process.platform === 'win32';
+
         if (this.currentSpinner) {
-            this.currentSpinner.stop();
+            try { this.currentSpinner.stop(); } catch { /* ignore */ }
         }
-        this.currentSpinner = ora({
-            text: message,
-            color: 'cyan',
-            spinner: 'dots',
-        }).start();
+
+        if (isWindows) {
+            // Use simple console output on Windows to avoid UV_HANDLE_CLOSING crash
+            console.log(chalk.cyan('⠋ ') + message);
+            // Return a mock ora object
+            this.currentSpinner = {
+                stop: () => { },
+                succeed: (msg?: string) => console.log(chalk.green('✓ ') + (msg || message)),
+                fail: (msg?: string) => console.log(chalk.red('✖ ') + (msg || message)),
+                text: message,
+            } as unknown as Ora;
+        } else {
+            this.currentSpinner = ora({
+                text: message,
+                color: 'cyan',
+                spinner: 'dots',
+            }).start();
+        }
+
         return this.currentSpinner;
     }
 
@@ -98,7 +114,7 @@ class Logger {
      */
     spinSuccess(message?: string): void {
         if (this.currentSpinner) {
-            this.currentSpinner.succeed(message);
+            try { this.currentSpinner.succeed(message); } catch { /* ignore */ }
             this.currentSpinner = null;
         }
     }
@@ -108,7 +124,7 @@ class Logger {
      */
     spinFail(message?: string): void {
         if (this.currentSpinner) {
-            this.currentSpinner.fail(message);
+            try { this.currentSpinner.fail(message); } catch { /* ignore */ }
             this.currentSpinner = null;
         }
     }
@@ -118,7 +134,7 @@ class Logger {
      */
     spinStop(): void {
         if (this.currentSpinner) {
-            this.currentSpinner.stop();
+            try { this.currentSpinner.stop(); } catch { /* ignore */ }
             this.currentSpinner = null;
         }
     }

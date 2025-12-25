@@ -244,14 +244,31 @@ agentCommand
             const aiService = createAIService(config.aiProvider);
             const response = await aiService.generate(prompt, instructions);
 
-            spinner.stop();
+            // Stop spinner safely (Windows compatibility)
+            try {
+                spinner.stop();
+            } catch {
+                // Ignore spinner errors on Windows
+            }
 
-            logger.box(response.content, {
-                title: `🤖 ${name}`,
-                borderColor: 'green',
-            });
+            // Use simple output on Windows to avoid UV_HANDLE_CLOSING crash
+            if (process.platform === 'win32') {
+                console.log(`\n${'═'.repeat(60)}`);
+                console.log(`🤖 ${name}`);
+                console.log(`${'═'.repeat(60)}\n`);
+                console.log(response.content);
+                console.log(`\n${'─'.repeat(60)}`);
+                console.log(`Tokens usados: ${response.tokensUsed || 'N/A'}`);
 
-            logger.keyValue('Tokens usados', String(response.tokensUsed || 'N/A'));
+                // Force clean exit on Windows to avoid UV_HANDLE crash
+                setTimeout(() => process.exit(0), 100);
+            } else {
+                logger.box(response.content, {
+                    title: `🤖 ${name}`,
+                    borderColor: 'green',
+                });
+                logger.keyValue('Tokens usados', String(response.tokensUsed || 'N/A'));
+            }
         } catch (error) {
             spinner.fail('Erro ao executar agente');
             logger.error(error instanceof Error ? error.message : String(error));

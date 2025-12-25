@@ -17,3 +17,7 @@ export { PlannerAgent, plannerAgent } from './specialized/planner-agent.js';
 export { TesterAgent, testerAgent } from './specialized/tester-agent.js';
 export { ConductorAgent, conductorAgent } from './specialized/conductor-agent.js';
 
+// Integração com Inngest AgentKit
+export { InngestAdapter, inngestAdapter } from './inngest-adapter.js';
+export { PAGIANetwork, pagiaNetwork } from './inngest-network.js';
+

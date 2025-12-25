@@ -151,6 +151,28 @@ export class ConfigManager {
         try {
             const content = readFileSync(configPath, 'utf-8');
             this.config = parseYaml(content) as PAGIAConfig;
+
+            // Resolve environment variables in apiKey
+            if (this.config.aiProvider) {
+                const apiKey = this.config.aiProvider.apiKey;
+
+                // Check if apiKey is a placeholder or env variable reference
+                if (!apiKey ||
+                    apiKey.includes('your_') ||
+                    apiKey.includes('_here') ||
+                    apiKey.startsWith('${')) {
+
+                    // Resolve from environment based on provider type
+                    const envKey = this.config.aiProvider.type === 'openai'
+                        ? process.env.OPENAI_API_KEY
+                        : this.config.aiProvider.type === 'anthropic'
+                            ? process.env.ANTHROPIC_API_KEY
+                            : process.env.GEMINI_API_KEY;
+
+                    this.config.aiProvider.apiKey = envKey || '';
+                }
+            }
+
             return this.config;
         } catch (error) {
             console.error('Error loading configuration:', error);

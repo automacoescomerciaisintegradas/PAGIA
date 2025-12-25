@@ -61,9 +61,14 @@ export const initCommand = new Command('init')
                     name: 'aiProvider',
                     message: 'Provedor de IA principal:',
                     choices: [
-                        { name: 'Google Gemini', value: 'gemini' },
-                        { name: 'OpenAI (GPT)', value: 'openai' },
-                        { name: 'Anthropic (Claude)', value: 'anthropic' },
+                        { name: '🔮 Google Gemini (Recomendado)', value: 'gemini' },
+                        { name: '🤖 OpenAI (GPT)', value: 'openai' },
+                        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
+                        { name: '⚡ Groq (Rápido)', value: 'groq' },
+                        { name: '🦙 Ollama (Local)', value: 'ollama' },
+                        { name: '🌊 DeepSeek', value: 'deepseek' },
+                        { name: '🌬️ Mistral AI', value: 'mistral' },
+                        { name: '🔀 OpenRouter (Multi-modelo)', value: 'openrouter' },
                     ],
                     default: 'gemini',
                 },
@@ -71,12 +76,20 @@ export const initCommand = new Command('init')
                     type: 'input',
                     name: 'apiKey',
                     message: (answers: any) => `API Key do ${answers.aiProvider}:`,
+                    when: (answers: any) => answers.aiProvider !== 'ollama',
                     validate: (input: string) => {
                         if (!input.trim()) {
                             return 'API Key é obrigatória. Você pode configurar depois em .env';
                         }
                         return true;
                     },
+                },
+                {
+                    type: 'input',
+                    name: 'ollamaUrl',
+                    message: 'URL do Ollama:',
+                    when: (answers: any) => answers.aiProvider === 'ollama',
+                    default: 'http://localhost:11434',
                 },
                 {
                     type: 'checkbox',
@@ -147,13 +160,23 @@ export const initCommand = new Command('init')
 function getDefaultModel(provider: string): string {
     switch (provider) {
         case 'gemini':
-            return 'gemini-2.0-flash-exp';
+            return 'gemini-2.5-pro-preview-06-05'; // Gemini 3 Pro (Low)
         case 'openai':
             return 'gpt-4o';
         case 'anthropic':
-            return 'claude-3-5-sonnet-20241022';
+            return 'claude-sonnet-4-20250514';
+        case 'groq':
+            return 'llama-3.3-70b-versatile';
+        case 'ollama':
+            return 'llama3.2';
+        case 'deepseek':
+            return 'deepseek-chat';
+        case 'mistral':
+            return 'mistral-large-latest';
+        case 'openrouter':
+            return 'anthropic/claude-sonnet-4';
         default:
-            return 'gemini-2.0-flash-exp';
+            return 'gemini-2.5-pro-preview-06-05';
     }
 }
 

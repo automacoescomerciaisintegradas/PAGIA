@@ -30,6 +30,24 @@ import { conductorCommand } from './commands/conductor.js';
 // Load environment variables
 config();
 
+// Windows fix: Prevent UV_HANDLE_CLOSING assertion crash
+// This is a known issue with Node.js on Windows when using certain terminal features
+if (process.platform === 'win32') {
+    process.on('exit', () => {
+        // Ensure clean exit on Windows
+    });
+
+    // Suppress uncaught exceptions related to UV_HANDLE
+    process.on('uncaughtException', (err) => {
+        if (err.message && err.message.includes('UV_HANDLE')) {
+            // Ignore UV_HANDLE errors on Windows
+            process.exit(0);
+        }
+        console.error('Uncaught exception:', err);
+        process.exit(1);
+    });
+}
+
 const program = new Command();
 
 // ASCII Art Banner

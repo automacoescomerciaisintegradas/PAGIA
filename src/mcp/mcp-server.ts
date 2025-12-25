@@ -15,6 +15,8 @@ import { agentRegistry } from '../agents/agent-registry.js';
 import { createKnowledgeBase } from '../knowledge/knowledge-base.js';
 import { getConfigManager } from '../core/config-manager.js';
 import { logger } from '../utils/logger.js';
+import { pagiaNetwork } from '../agents/inngest-network.js';
+import { ingestTool } from '../utils/ingest-tool.js';
 
 export interface MCPTool {
     name: string;
@@ -344,7 +346,126 @@ export class MCPServer {
             inputSchema: { type: 'object', properties: {} },
             handler: async () => {
                 const stats = agentRegistry.getStats();
-                return { agents: stats, serverUptime: process.uptime() };
+                const networkStats = pagiaNetwork.getStats();
+                return {
+                    agents: stats,
+                    networks: networkStats,
+                    serverUptime: process.uptime()
+                };
+            },
+        });
+
+        // Ferramenta: Criar rede AgentKit
+        this.registerTool({
+            name: 'pagia.createNetwork',
+            description: 'Cria uma rede de agentes usando AgentKit',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Nome da rede' },
+                    type: { type: 'string', description: 'Tipo: default ou custom', enum: ['default', 'custom'] },
+                    agentIds: { type: 'array', items: { type: 'string' }, description: 'IDs dos agentes (para custom)' },
+                },
+                required: ['name'],
+            },
+            handler: async (params) => {
+                const name = params.name as string;
+                const type = (params.type as string) || 'default';
+
+                if (type === 'custom' && params.agentIds) {
+                    await pagiaNetwork.createCustomNetwork(name, params.agentIds as string[]);
+                } else {
+                    pagiaNetwork.createDefaultNetwork({ name });
+                }
+
+                return { success: true, network: name };
+            },
+        });
+
+        // Ferramenta: Executar rede
+        this.registerTool({
+            name: 'pagia.runNetwork',
+            description: 'Executa uma rede de agentes com uma tarefa',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    network: { type: 'string', description: 'Nome da rede' },
+                    input: { type: 'string', description: 'Tarefa/input para a rede' },
+                },
+                required: ['network', 'input'],
+            },
+            handler: async (params) => {
+                const result = await pagiaNetwork.runNetwork(
+                    params.network as string,
+                    params.input as string
+                );
+                return result;
+            },
+        });
+
+        // Ferramenta: Listar redes
+        this.registerTool({
+            name: 'pagia.listNetworks',
+            description: 'Lista todas as redes de agentes disponíveis',
+            inputSchema: { type: 'object', properties: {} },
+            handler: async () => {
+                return pagiaNetwork.listNetworks();
+            },
+        });
+
+        // Ferramenta: Ingest código
+        this.registerTool({
+            name: 'pagia.ingestCode',
+            description: 'Processa diretório de código para contexto de LLM',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    path: { type: 'string', description: 'Caminho do diretório' },
+                    compress: { type: 'boolean', description: 'Comprimir código (default: true)' },
+                    maxTokens: { type: 'number', description: 'Limite de tokens' },
+                },
+                required: ['path'],
+            },
+            handler: async (params) => {
+                const result = await ingestTool.processForLLM(
+                    params.path as string,
+                    {
+                        compress: (params.compress as boolean) ?? true,
+                        maxTokens: params.maxTokens as number,
+                    }
+                );
+                return {
+                    success: result.success,
+                    tokens: result.tokens,
+                    preview: result.content?.substring(0, 500),
+                    error: result.error,
+                };
+            },
+        });
+
+        // Ferramenta: Ingest URL
+        this.registerTool({
+            name: 'pagia.ingestURL',
+            description: 'Processa URL/website para contexto de LLM',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    url: { type: 'string', description: 'URL a processar' },
+                    depth: { type: 'number', description: 'Profundidade de crawling' },
+                },
+                required: ['url'],
+            },
+            handler: async (params) => {
+                const result = await ingestTool.processURL(
+                    params.url as string,
+                    { depth: params.depth as number }
+                );
+                return {
+                    success: result.success,
+                    tokens: result.tokens,
+                    preview: result.content?.substring(0, 500),
+                    error: result.error,
+                };
             },
         });
     }

@@ -53,9 +53,12 @@ npm link
 
 ### Configuração de API
 
-Crie um arquivo `.env` na raiz do projeto:
+Crie um arquivo `.env` na raiz do projeto com as credenciais do provedor escolhido:
 
 ```env
+# Provedor de IA (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter)
+AI_PROVIDER=gemini
+
 # Gemini (Padrão)
 GEMINI_API_KEY=sua_chave_aqui
 GEMINI_MODEL=gemini-2.0-flash-exp
@@ -67,7 +70,29 @@ OPENAI_MODEL=gpt-4o
 # Anthropic (Opcional)
 ANTHROPIC_API_KEY=sua_chave_aqui
 ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+
+# Groq (Opcional) - Inferência rápida
+GROQ_API_KEY=sua_chave_aqui
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# Ollama (Local) - Sem API key necessária
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+
+# DeepSeek (Opcional)
+DEEPSEEK_API_KEY=sua_chave_aqui
+DEEPSEEK_MODEL=deepseek-chat
+
+# Mistral (Opcional)
+MISTRAL_API_KEY=sua_chave_aqui
+MISTRAL_MODEL=mistral-large-latest
+
+# OpenRouter (Opcional) - Múltiplos modelos
+OPENROUTER_API_KEY=sua_chave_aqui
+OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
 ```
+
+📖 Veja a [documentação completa de provedores](docs/AI_PROVIDERS.md) para mais detalhes.
 
 ---
 
@@ -388,9 +413,15 @@ pagia bundle validate ./bundle.md
 
 | Variável | Descrição |
 |----------|-----------|
+| `AI_PROVIDER` | Provedor de IA (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter) |
 | `GEMINI_API_KEY` | Chave API do Gemini |
 | `OPENAI_API_KEY` | Chave API da OpenAI |
 | `ANTHROPIC_API_KEY` | Chave API da Anthropic |
+| `GROQ_API_KEY` | Chave API do Groq |
+| `DEEPSEEK_API_KEY` | Chave API do DeepSeek |
+| `MISTRAL_API_KEY` | Chave API do Mistral |
+| `OPENROUTER_API_KEY` | Chave API do OpenRouter |
+| `OLLAMA_BASE_URL` | URL do Ollama (default: `http://localhost:11434`) |
 | `PAGIA_FOLDER` | Pasta PAGIA (default: `.pagia`) |
 | `PAGIA_LANGUAGE` | Idioma (default: `pt-BR`) |
 | `PAGIA_DEBUG` | Ativar debug |

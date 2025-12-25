@@ -42,9 +42,23 @@ export const statusCommand = new Command('status')
 
         // AI Provider
         console.log(chalk.bold('🤖 Provedor de IA'));
-        logger.keyValue('Provedor', config.aiProvider.type);
+        const providerNames: Record<string, string> = {
+            gemini: '🔮 Google Gemini',
+            openai: '🤖 OpenAI',
+            anthropic: '🧠 Anthropic Claude',
+            groq: '⚡ Groq',
+            ollama: '🦙 Ollama (Local)',
+            deepseek: '🌊 DeepSeek',
+            mistral: '🌬️ Mistral AI',
+            openrouter: '🔀 OpenRouter',
+            local: '💻 Local',
+        };
+        logger.keyValue('Provedor', providerNames[config.aiProvider.type] || config.aiProvider.type);
         logger.keyValue('Modelo', config.aiProvider.model);
-        logger.keyValue('API Key', config.aiProvider.apiKey ? '********' + config.aiProvider.apiKey.slice(-4) : 'Não configurada');
+        const apiKeyDisplay = config.aiProvider.type === 'ollama'
+            ? 'N/A (Local)'
+            : (config.aiProvider.apiKey ? '********' + config.aiProvider.apiKey.slice(-4) : 'Não configurada');
+        logger.keyValue('API Key', apiKeyDisplay);
         logger.newLine();
 
         // Modules

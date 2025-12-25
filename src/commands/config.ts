@@ -123,9 +123,14 @@ configCommand
                 name: 'type',
                 message: 'Provedor de IA:',
                 choices: [
-                    { name: 'Google Gemini', value: 'gemini' },
-                    { name: 'OpenAI (GPT)', value: 'openai' },
-                    { name: 'Anthropic (Claude)', value: 'anthropic' },
+                    { name: '🔮 Google Gemini', value: 'gemini' },
+                    { name: '🤖 OpenAI (GPT)', value: 'openai' },
+                    { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
+                    { name: '⚡ Groq', value: 'groq' },
+                    { name: '🦙 Ollama (Local)', value: 'ollama' },
+                    { name: '🌊 DeepSeek', value: 'deepseek' },
+                    { name: '🌬️ Mistral AI', value: 'mistral' },
+                    { name: '🔀 OpenRouter', value: 'openrouter' },
                 ],
                 default: config.aiProvider.type,
             },
@@ -133,7 +138,15 @@ configCommand
                 type: 'input',
                 name: 'apiKey',
                 message: (ans: any) => `API Key do ${ans.type}:`,
+                when: (ans: any) => ans.type !== 'ollama',
                 default: config.aiProvider.apiKey,
+            },
+            {
+                type: 'input',
+                name: 'ollamaUrl',
+                message: 'URL do Ollama:',
+                when: (ans: any) => ans.type === 'ollama',
+                default: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
             },
             {
                 type: 'list',
@@ -208,24 +221,68 @@ function getModelChoices(provider: string): { name: string; value: string }[] {
     switch (provider) {
         case 'gemini':
             return [
+                { name: '⭐ Gemini 3 Pro (Low) - Padrão', value: 'gemini-2.5-pro-preview-06-05' },
+                { name: 'Gemini 3 Pro (High)', value: 'gemini-2.5-pro-preview-05-06' },
+                { name: 'Gemini 3 Flash', value: 'gemini-2.5-flash-preview-05-20' },
                 { name: 'Gemini 2.0 Flash (Experimental)', value: 'gemini-2.0-flash-exp' },
                 { name: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
                 { name: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro' },
-                { name: 'Gemini 2.0 Flash Thinking', value: 'gemini-2.0-flash-thinking-exp' },
             ];
         case 'openai':
             return [
                 { name: 'GPT-4o', value: 'gpt-4o' },
                 { name: 'GPT-4o Mini', value: 'gpt-4o-mini' },
-                { name: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
+                { name: 'GPT-4.1', value: 'gpt-4.1' },
                 { name: 'o1 Preview', value: 'o1-preview' },
                 { name: 'o1 Mini', value: 'o1-mini' },
+                { name: 'o3 Mini', value: 'o3-mini' },
             ];
         case 'anthropic':
             return [
+                { name: '⭐ Claude Sonnet 4.5', value: 'claude-sonnet-4-20250514' },
+                { name: 'Claude Sonnet 4.5 (Thinking)', value: 'claude-sonnet-4-20250514-thinking' },
+                { name: 'Claude Opus 4.5', value: 'claude-opus-4-20250514' },
                 { name: 'Claude 3.5 Sonnet', value: 'claude-3-5-sonnet-20241022' },
                 { name: 'Claude 3.5 Haiku', value: 'claude-3-5-haiku-20241022' },
-                { name: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
+            ];
+        case 'groq':
+            return [
+                { name: 'LLaMA 3.3 70B Versatile', value: 'llama-3.3-70b-versatile' },
+                { name: 'LLaMA 3.1 70B', value: 'llama-3.1-70b-versatile' },
+                { name: 'LLaMA 3.1 8B', value: 'llama-3.1-8b-instant' },
+                { name: 'Mixtral 8x7B', value: 'mixtral-8x7b-32768' },
+                { name: 'Gemma 2 9B', value: 'gemma2-9b-it' },
+            ];
+        case 'ollama':
+            return [
+                { name: 'LLaMA 3.2', value: 'llama3.2' },
+                { name: 'LLaMA 3.1', value: 'llama3.1' },
+                { name: 'Mistral', value: 'mistral' },
+                { name: 'Qwen 2.5', value: 'qwen2.5' },
+                { name: 'Phi-3', value: 'phi3' },
+                { name: 'CodeGemma', value: 'codegemma' },
+                { name: 'DeepSeek Coder v2', value: 'deepseek-coder-v2' },
+            ];
+        case 'deepseek':
+            return [
+                { name: 'DeepSeek Chat', value: 'deepseek-chat' },
+                { name: 'DeepSeek Coder', value: 'deepseek-coder' },
+            ];
+        case 'mistral':
+            return [
+                { name: 'Mistral Large', value: 'mistral-large-latest' },
+                { name: 'Mistral Medium', value: 'mistral-medium-latest' },
+                { name: 'Mistral Small', value: 'mistral-small-latest' },
+                { name: 'Codestral', value: 'codestral-latest' },
+            ];
+        case 'openrouter':
+            return [
+                { name: '⭐ Claude Sonnet 4.5', value: 'anthropic/claude-sonnet-4' },
+                { name: 'Claude Sonnet 4.5 (Thinking)', value: 'anthropic/claude-sonnet-4:thinking' },
+                { name: 'Claude Opus 4.5 (Thinking)', value: 'anthropic/claude-opus-4:thinking' },
+                { name: 'GPT-4o', value: 'openai/gpt-4o' },
+                { name: 'LLaMA 3.1 405B', value: 'meta-llama/llama-3.1-405b-instruct' },
+                { name: 'Gemini Pro 1.5', value: 'google/gemini-pro-1.5' },
             ];
         default:
             return [];
