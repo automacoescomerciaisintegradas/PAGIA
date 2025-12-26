@@ -300,3 +300,213 @@ POST /rpc            - JSON-RPC 2.0
 `);
         }
     });
+
+// LSP Mode - Inicia servidor LSP para integração com editores
+mcpCommand
+    .command('lsp')
+    .description('Iniciar servidor em modo LSP (Language Server Protocol)')
+    .option('-p, --port <port>', 'Porta do servidor', '3101')
+    .option('--stdio', 'Usar stdio ao invés de TCP')
+    .action(async (options) => {
+        logger.section('PAGIA LSP Server');
+
+        const port = parseInt(options.port);
+
+        const spinner = logger.spin(`Iniciando LSP Server na porta ${port}...`);
+
+        try {
+            const { createServer } = await import('net');
+
+            const server = createServer((socket) => {
+                let buffer = '';
+
+                socket.on('data', (data) => {
+                    buffer += data.toString();
+
+                    // Processar mensagens JSON-RPC
+                    const headerMatch = buffer.match(/Content-Length: (\d+)\r\n\r\n/);
+                    if (headerMatch) {
+                        const contentLength = parseInt(headerMatch[1]);
+                        const headerEnd = buffer.indexOf('\r\n\r\n') + 4;
+                        const content = buffer.substring(headerEnd, headerEnd + contentLength);
+
+                        if (content.length === contentLength) {
+                            buffer = buffer.substring(headerEnd + contentLength);
+                            handleLSPMessage(content, socket);
+                        }
+                    }
+                });
+            });
+
+            server.listen(port, () => {
+                spinner.succeed(`LSP Server iniciado na porta ${port}`);
+
+                logger.newLine();
+                logger.box(
+                    `${chalk.bold('LSP Server Ativo')}
+
+${chalk.gray('TCP:')} localhost:${port}
+${chalk.gray('Modo:')} Language Server Protocol
+
+${chalk.bold('Configuração Neovim:')}
+${chalk.cyan(`cmd = { "nc", "localhost", "${port}" }`)}
+
+${chalk.bold('Features:')}
+• Completions para /comandos e @agentes
+• Code Actions (Otimizar, Refatorar, Testar)
+• Hover para informações de agentes
+
+Pressione Ctrl+C para parar`,
+                    { title: '📡 LSP Server', borderColor: 'blue' }
+                );
+            });
+
+            process.on('SIGINT', () => {
+                server.close();
+                process.exit(0);
+            });
+
+            // Manter processo vivo
+            await new Promise(() => { });
+        } catch (error) {
+            spinner.fail('Erro ao iniciar LSP Server');
+            logger.error(error instanceof Error ? error.message : String(error));
+            process.exit(1);
+        }
+    });
+
+/**
+ * Processa mensagem LSP e envia resposta
+ */
+function handleLSPMessage(content: string, socket: any): void {
+    try {
+        const message = JSON.parse(content);
+        let response: any = null;
+
+        switch (message.method) {
+            case 'initialize':
+                response = {
+                    jsonrpc: '2.0',
+                    id: message.id,
+                    result: {
+                        capabilities: {
+                            textDocumentSync: 1,
+                            completionProvider: {
+                                resolveProvider: true,
+                                triggerCharacters: ['/', '@', '#'],
+                            },
+                            codeActionProvider: true,
+                            hoverProvider: true,
+                        },
+                        serverInfo: {
+                            name: 'PAGIA LSP',
+                            version: '1.0.0',
+                        },
+                    },
+                };
+                break;
+
+            case 'initialized':
+                // Notificação, sem resposta
+                break;
+
+            case 'textDocument/completion':
+                response = {
+                    jsonrpc: '2.0',
+                    id: message.id,
+                    result: [
+                        { label: '/optimize', kind: 3, detail: 'Otimizar código' },
+                        { label: '/refactor', kind: 3, detail: 'Refatorar código' },
+                        { label: '/test', kind: 3, detail: 'Gerar testes' },
+                        { label: '/doc', kind: 3, detail: 'Gerar documentação' },
+                        { label: '/explain', kind: 3, detail: 'Explicar código' },
+                        { label: '/review', kind: 3, detail: 'Code review' },
+                        { label: '@dev', kind: 3, detail: 'Agente Dev' },
+                        { label: '@architect', kind: 3, detail: 'Agente Architect' },
+                        { label: '@qa', kind: 3, detail: 'Agente QA' },
+                        { label: '@code-optimizer', kind: 3, detail: 'Agente Otimizador' },
+                    ],
+                };
+                break;
+
+            case 'textDocument/hover':
+                response = {
+                    jsonrpc: '2.0',
+                    id: message.id,
+                    result: {
+                        contents: {
+                            kind: 'markdown',
+                            value: '**PAGIA**\n\nUse `/comando` ou `@agente` para ações de IA.',
+                        },
+                    },
+                };
+                break;
+
+            case 'textDocument/codeAction':
+                response = {
+                    jsonrpc: '2.0',
+                    id: message.id,
+                    result: [
+                        {
+                            title: '🚀 Otimizar com PAGIA',
+                            kind: 'quickfix',
+                            command: { title: 'Otimizar', command: 'pagia.optimize' },
+                        },
+                        {
+                            title: '♻️ Refatorar com PAGIA',
+                            kind: 'refactor',
+                            command: { title: 'Refatorar', command: 'pagia.refactor' },
+                        },
+                        {
+                            title: '🧪 Gerar testes com PAGIA',
+                            kind: 'source',
+                            command: { title: 'Gerar testes', command: 'pagia.test' },
+                        },
+                    ],
+                };
+                break;
+
+            case 'shutdown':
+                response = {
+                    jsonrpc: '2.0',
+                    id: message.id,
+                    result: null,
+                };
+                break;
+
+            case 'exit':
+                socket.end();
+                break;
+
+            default:
+                // Método desconhecido
+                if (message.id) {
+                    response = {
+                        jsonrpc: '2.0',
+                        id: message.id,
+                        error: {
+                            code: -32601,
+                            message: `Method not found: ${message.method}`,
+                        },
+                    };
+                }
+        }
+
+        if (response) {
+            sendLSPResponse(socket, response);
+        }
+    } catch (error) {
+        console.error('LSP parse error:', error);
+    }
+}
+
+/**
+ * Envia resposta LSP formatada
+ */
+function sendLSPResponse(socket: any, response: any): void {
+    const content = JSON.stringify(response);
+    const header = `Content-Length: ${Buffer.byteLength(content)}\r\n\r\n`;
+    socket.write(header + content);
+}
+
+

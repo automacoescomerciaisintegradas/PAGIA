@@ -27,6 +27,7 @@ import { tddCommand } from './commands/tdd.js';
 import { registryCommand } from './commands/registry.js';
 import { conductorCommand } from './commands/conductor.js';
 import { doctorCommand } from './commands/doctor.js';
+import { pluginCommand } from './commands/plugin.js';
 
 // Load environment variables
 config();
@@ -97,6 +98,7 @@ program.addCommand(tddCommand);
 program.addCommand(registryCommand);
 program.addCommand(conductorCommand);
 program.addCommand(doctorCommand);
+program.addCommand(pluginCommand);
 
 // Parse arguments
 program.parse(process.argv);
