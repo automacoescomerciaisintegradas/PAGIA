@@ -4,9 +4,9 @@ language: pt-BR
 userName: Developer
 debug: false
 aiProvider:
-  type: gemini
-  apiKey: ${GEMINI_API_KEY}
-  model: gemini-2.0-flash-exp
+  type: groq
+  apiKey: ${GROQ_API_KEY}
+  model: llama-3.3-70b-versatile
   temperature: 0.7
   maxTokens: 8192
 modules:

@@ -743,6 +743,278 @@ export class MCPServer {
                 return await client.testConnection();
             },
         });
+
+        // ========================================
+        // Ferramentas de Gerenciamento de Planos
+        // ========================================
+
+        // Ferramenta: Criar plano
+        this.registerTool({
+            name: 'pagia.plan.create',
+            description: 'Cria um novo plano de ação PAGIA',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Nome do plano' },
+                    type: { type: 'string', enum: ['global', 'stage', 'prompt', 'ai'], description: 'Tipo de plano (default: global)' },
+                    description: { type: 'string', description: 'Descrição do plano' },
+                    objectives: { type: 'array', items: { type: 'string' }, description: 'Lista de objetivos' },
+                    stages: { type: 'array', items: { type: 'string' }, description: 'Lista de etapas' },
+                    milestones: { type: 'array', items: { type: 'string' }, description: 'Lista de marcos' },
+                },
+                required: ['name'],
+            },
+            handler: async (params) => {
+                const { existsSync, writeFileSync, mkdirSync } = await import('fs');
+                const { stringify: stringifyYaml } = await import('yaml');
+                const configManager = getConfigManager();
+
+                const planType = (params.type as string) || 'global';
+                const planName = params.name as string;
+                const planFolder = configManager.resolvePagiaPath(`plans/${planType === 'ai' ? 'ai' : planType}`);
+
+                // Criar diretório se não existir
+                if (!existsSync(planFolder)) {
+                    mkdirSync(planFolder, { recursive: true });
+                }
+
+                // Gerar ID único
+                const id = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+                const filename = planName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') + '.yaml';
+                const planFile = `${planFolder}/${filename}`;
+
+                const plan = {
+                    id,
+                    name: planName,
+                    description: (params.description as string) || '',
+                    objectives: (params.objectives as string[]) || [],
+                    stages: (params.stages as string[]) || [],
+                    milestones: (params.milestones as string[]) || [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+
+                writeFileSync(planFile, stringifyYaml(plan, { indent: 2 }), 'utf-8');
+
+                return {
+                    success: true,
+                    plan: {
+                        id,
+                        name: planName,
+                        type: planType,
+                        file: planFile,
+                    },
+                };
+            },
+        });
+
+        // Ferramenta: Listar planos
+        this.registerTool({
+            name: 'pagia.plan.list',
+            description: 'Lista todos os planos de ação PAGIA',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    type: { type: 'string', enum: ['global', 'stage', 'prompt', 'ai', 'all'], description: 'Filtrar por tipo (default: all)' },
+                },
+            },
+            handler: async (params) => {
+                const { existsSync, readdirSync, readFileSync } = await import('fs');
+                const { parse: parseYaml } = await import('yaml');
+                const configManager = getConfigManager();
+
+                const planTypes = ['global', 'stages', 'prompts', 'ai'];
+                const filterType = params.type as string;
+                const plans: Array<{ type: string; name: string; id: string; description: string }> = [];
+
+                for (const type of planTypes) {
+                    if (filterType && filterType !== 'all' && type !== filterType && type !== filterType + 's') {
+                        continue;
+                    }
+
+                    const folder = configManager.resolvePagiaPath(`plans/${type}`);
+                    if (!existsSync(folder)) continue;
+
+                    const files = readdirSync(folder).filter(f => f.endsWith('.yaml'));
+                    for (const file of files) {
+                        try {
+                            const content = readFileSync(`${folder}/${file}`, 'utf-8');
+                            const plan = parseYaml(content);
+                            plans.push({
+                                type: type === 'stages' ? 'stage' : type === 'prompts' ? 'prompt' : type,
+                                name: plan.name || file.replace('.yaml', ''),
+                                id: plan.id || '',
+                                description: plan.description || '',
+                            });
+                        } catch {
+                            // Ignorar arquivos inválidos
+                        }
+                    }
+                }
+
+                return {
+                    count: plans.length,
+                    plans,
+                };
+            },
+        });
+
+        // Ferramenta: Visualizar plano
+        this.registerTool({
+            name: 'pagia.plan.view',
+            description: 'Visualiza detalhes de um plano específico',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Nome do plano' },
+                },
+                required: ['name'],
+            },
+            handler: async (params) => {
+                const { existsSync, readdirSync, readFileSync } = await import('fs');
+                const { parse: parseYaml } = await import('yaml');
+                const configManager = getConfigManager();
+
+                const planName = params.name as string;
+                const searchName = planName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                const planTypes = ['global', 'stages', 'prompts', 'ai'];
+
+                for (const type of planTypes) {
+                    const folder = configManager.resolvePagiaPath(`plans/${type}`);
+                    if (!existsSync(folder)) continue;
+
+                    const files = readdirSync(folder).filter(f => f.endsWith('.yaml'));
+                    for (const file of files) {
+                        if (file.includes(searchName) || file === `${searchName}.yaml`) {
+                            const content = readFileSync(`${folder}/${file}`, 'utf-8');
+                            const plan = parseYaml(content);
+                            return {
+                                found: true,
+                                type: type === 'stages' ? 'stage' : type === 'prompts' ? 'prompt' : type,
+                                plan,
+                            };
+                        }
+                    }
+                }
+
+                return { found: false, error: `Plano "${planName}" não encontrado` };
+            },
+        });
+
+        // Ferramenta: Atualizar plano
+        this.registerTool({
+            name: 'pagia.plan.update',
+            description: 'Atualiza um plano existente',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Nome do plano a atualizar' },
+                    description: { type: 'string', description: 'Nova descrição' },
+                    objectives: { type: 'array', items: { type: 'string' }, description: 'Novos objetivos (substitui existentes)' },
+                    stages: { type: 'array', items: { type: 'string' }, description: 'Novas etapas (substitui existentes)' },
+                    milestones: { type: 'array', items: { type: 'string' }, description: 'Novos marcos (substitui existentes)' },
+                    addObjective: { type: 'string', description: 'Adicionar um objetivo' },
+                    addStage: { type: 'string', description: 'Adicionar uma etapa' },
+                    addMilestone: { type: 'string', description: 'Adicionar um marco' },
+                },
+                required: ['name'],
+            },
+            handler: async (params) => {
+                const { existsSync, readdirSync, readFileSync, writeFileSync } = await import('fs');
+                const { parse: parseYaml, stringify: stringifyYaml } = await import('yaml');
+                const configManager = getConfigManager();
+
+                const planName = params.name as string;
+                const searchName = planName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                const planTypes = ['global', 'stages', 'prompts', 'ai'];
+
+                for (const type of planTypes) {
+                    const folder = configManager.resolvePagiaPath(`plans/${type}`);
+                    if (!existsSync(folder)) continue;
+
+                    const files = readdirSync(folder).filter(f => f.endsWith('.yaml'));
+                    for (const file of files) {
+                        if (file.includes(searchName) || file === `${searchName}.yaml`) {
+                            const filePath = `${folder}/${file}`;
+                            const content = readFileSync(filePath, 'utf-8');
+                            const plan = parseYaml(content);
+
+                            // Atualizar campos
+                            if (params.description !== undefined) plan.description = params.description;
+                            if (params.objectives !== undefined) plan.objectives = params.objectives;
+                            if (params.stages !== undefined) plan.stages = params.stages;
+                            if (params.milestones !== undefined) plan.milestones = params.milestones;
+
+                            // Adicionar itens individuais
+                            if (params.addObjective) {
+                                plan.objectives = plan.objectives || [];
+                                plan.objectives.push(params.addObjective);
+                            }
+                            if (params.addStage) {
+                                plan.stages = plan.stages || [];
+                                plan.stages.push(params.addStage);
+                            }
+                            if (params.addMilestone) {
+                                plan.milestones = plan.milestones || [];
+                                plan.milestones.push(params.addMilestone);
+                            }
+
+                            plan.updatedAt = new Date().toISOString();
+
+                            writeFileSync(filePath, stringifyYaml(plan, { indent: 2 }), 'utf-8');
+
+                            return {
+                                success: true,
+                                plan,
+                            };
+                        }
+                    }
+                }
+
+                return { success: false, error: `Plano "${planName}" não encontrado` };
+            },
+        });
+
+        // Ferramenta: Deletar plano
+        this.registerTool({
+            name: 'pagia.plan.delete',
+            description: 'Remove um plano existente',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Nome do plano a deletar' },
+                },
+                required: ['name'],
+            },
+            handler: async (params) => {
+                const { existsSync, readdirSync, unlinkSync } = await import('fs');
+                const configManager = getConfigManager();
+
+                const planName = params.name as string;
+                const searchName = planName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                const planTypes = ['global', 'stages', 'prompts', 'ai'];
+
+                for (const type of planTypes) {
+                    const folder = configManager.resolvePagiaPath(`plans/${type}`);
+                    if (!existsSync(folder)) continue;
+
+                    const files = readdirSync(folder).filter(f => f.endsWith('.yaml'));
+                    for (const file of files) {
+                        if (file.includes(searchName) || file === `${searchName}.yaml`) {
+                            const filePath = `${folder}/${file}`;
+                            unlinkSync(filePath);
+                            return {
+                                success: true,
+                                deleted: planName,
+                                file: filePath,
+                            };
+                        }
+                    }
+                }
+
+                return { success: false, error: `Plano "${planName}" não encontrado` };
+            },
+        });
     }
 
     /**

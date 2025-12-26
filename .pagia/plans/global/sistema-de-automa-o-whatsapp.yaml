@@ -1,0 +1,24 @@
+id: 1766710215402-vu3vb6voxqk
+name: Sistema de Automa��o WhatsApp
+description: Plano completo para desenvolvimento de sistema de automa��o de
+  mensagens WhatsApp com integra��o CRM
+objectives:
+  - Implementar conex�o est�vel com WhatsApp via Evolution API
+  - Criar sistema de templates de mensagens personaliz�veis
+  - Integrar com CRM para gest�o de leads
+  - Implementar disparo em massa com controle de rate limit
+  - Criar dashboard de m�tricas e relat�rios
+stages:
+  - "Etapa 1: Configura��o do Ambiente e APIs"
+  - "Etapa 2: Desenvolvimento do Backend"
+  - "Etapa 3: Cria��o do Frontend/Dashboard"
+  - "Etapa 4: Integra��o com CRM"
+  - "Etapa 5: Testes e Otimiza��o"
+  - "Etapa 6: Deploy e Monitoramento"
+milestones:
+  - "Marco 1: API conectada e funcionando - Prazo: 3 dias"
+  - "Marco 2: Backend completo com endpoints - Prazo: 1 semana"
+  - "Marco 3: Dashboard funcional - Prazo: 2 semanas"
+  - "Marco 4: Sistema em produ��o - Prazo: 3 semanas"
+createdAt: 2025-12-26T00:50:15.402Z
+updatedAt: 2025-12-26T00:50:15.402Z

@@ -1,0 +1,421 @@
+{
+    "name": "PAGIA - Agente Criador de Planos com IA",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pagia/ai/create-plan",
+                "options": {
+                    "responseMode": "responseNode"
+                }
+            },
+            "id": "webhook-ai-plan",
+            "name": "Webhook - Criar Plano com IA",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                300
+            ],
+            "webhookId": "pagia-ai-plan-creator"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o-mini",
+                "options": {
+                    "temperature": 0.7,
+                    "maxTokens": 4000,
+                    "responseFormat": {
+                        "type": "json_object"
+                    }
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "role": "system",
+                            "content": "Você é o **PAGIA Plan Creator**, um agente especialista em criar planos de ação estruturados e detalhados.\n\n## Sua Missão\nTransformar solicitações do usuário em planos de ação completos, organizados e prontos para execução.\n\n## Formato de Saída (JSON)\nVocê DEVE responder sempre em formato JSON válido com a seguinte estrutura:\n\n{\n  \"name\": \"Nome do Plano (curto e descritivo)\",\n  \"type\": \"global\",\n  \"description\": \"Descrição detalhada do objetivo do plano\",\n  \"objectives\": [\n    \"Objetivo 1 - SMART (Específico, Mensurável, Alcançável, Relevante, Temporal)\",\n    \"Objetivo 2\",\n    \"Objetivo 3\"\n  ],\n  \"stages\": [\n    \"Etapa 1: Planejamento e Análise\",\n    \"Etapa 2: Desenvolvimento/Implementação\",\n    \"Etapa 3: Testes e Validação\",\n    \"Etapa 4: Deploy/Entrega\",\n    \"Etapa 5: Monitoramento e Ajustes\"\n  ],\n  \"milestones\": [\n    \"Marco 1: [Descrição] - Prazo: [X semanas/dias]\",\n    \"Marco 2: [Descrição] - Prazo: [X semanas/dias]\",\n    \"Marco 3: [Descrição] - Prazo: [X semanas/dias]\"\n  ]\n}\n\n## Regras\n\n1. **Seja Específico**: Evite objetivos vagos. Use métricas quando possível.\n2. **Seja Realista**: Considere recursos e tempo disponíveis.\n3. **Seja Completo**: Inclua todas as etapas necessárias.\n4. **Seja Estruturado**: Organize logicamente do início ao fim.\n5. **Mínimo 3 objetivos, 4 etapas e 3 marcos**\n\nResponda APENAS com o JSON, sem explicações adicionais."
+                        },
+                        {
+                            "role": "user",
+                            "content": "={{ $json.body.prompt || $json.body.request || $json.body.message }}"
+                        }
+                    ]
+                }
+            },
+            "id": "openai-plan",
+            "name": "OpenAI - Gerar Plano",
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "typeVersion": 1.4,
+            "position": [
+                500,
+                300
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "your-openai-credential-id",
+                    "name": "OpenAI API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parsear resposta da IA\nconst aiResponse = $input.first().json;\nlet plan;\n\ntry {\n  // Tentar extrair JSON da resposta\n  if (typeof aiResponse.message?.content === 'string') {\n    plan = JSON.parse(aiResponse.message.content);\n  } else if (typeof aiResponse.text === 'string') {\n    plan = JSON.parse(aiResponse.text);\n  } else if (typeof aiResponse === 'object' && aiResponse.name) {\n    plan = aiResponse;\n  } else {\n    throw new Error('Formato de resposta não reconhecido');\n  }\n  \n  // Validar campos obrigatórios\n  if (!plan.name) plan.name = 'Plano Sem Nome';\n  if (!plan.type) plan.type = 'global';\n  if (!plan.description) plan.description = '';\n  if (!Array.isArray(plan.objectives)) plan.objectives = [];\n  if (!Array.isArray(plan.stages)) plan.stages = [];\n  if (!Array.isArray(plan.milestones)) plan.milestones = [];\n  \n  return {\n    success: true,\n    plan: plan\n  };\n} catch (error) {\n  return {\n    success: false,\n    error: error.message,\n    rawResponse: aiResponse\n  };\n}"
+            },
+            "id": "parse-ai-response",
+            "name": "Processar Resposta IA",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                720,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.success }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "if-success",
+            "name": "Plano Válido?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                940,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.create",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify($json.plan) }}"
+            },
+            "id": "create-plan-mcp",
+            "name": "MCP - Criar Plano",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1180,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"success\": true,\n  \"message\": \"Plano criado com sucesso via IA!\",\n  \"plan\": {{ JSON.stringify($json.result.plan) }}\n}",
+                "options": {}
+            },
+            "id": "respond-success",
+            "name": "Responder Sucesso",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1420,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"success\": false,\n  \"error\": \"{{ $json.error }}\",\n  \"details\": \"Falha ao processar resposta da IA\"\n}",
+                "options": {
+                    "responseCode": 400
+                }
+            },
+            "id": "respond-error",
+            "name": "Responder Erro",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1180,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pagia/ai/suggest-improvements",
+                "options": {
+                    "responseMode": "responseNode"
+                }
+            },
+            "id": "webhook-improve",
+            "name": "Webhook - Sugerir Melhorias",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                600
+            ],
+            "webhookId": "pagia-ai-improve"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o-mini",
+                "options": {
+                    "temperature": 0.7,
+                    "maxTokens": 2000,
+                    "responseFormat": {
+                        "type": "json_object"
+                    }
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "role": "system",
+                            "content": "Você é um consultor de projetos. Analise o plano fornecido e sugira melhorias.\n\nRetorne JSON com:\n{\n  \"planName\": \"nome do plano analisado\",\n  \"score\": 1-10,\n  \"strengths\": [\"pontos fortes\"],\n  \"weaknesses\": [\"pontos fracos\"],\n  \"suggestions\": [\n    {\n      \"field\": \"campo a melhorar\",\n      \"current\": \"valor atual\",\n      \"suggested\": \"valor sugerido\",\n      \"reason\": \"motivo da melhoria\"\n    }\n  ],\n  \"additionalObjectives\": [\"objetivos extras sugeridos\"],\n  \"additionalStages\": [\"etapas extras sugeridas\"],\n  \"additionalMilestones\": [\"marcos extras sugeridos\"]\n}"
+                        },
+                        {
+                            "role": "user",
+                            "content": "Analise este plano:\n\n{{ JSON.stringify($json.body.plan, null, 2) }}"
+                        }
+                    ]
+                }
+            },
+            "id": "openai-improve",
+            "name": "OpenAI - Analisar Plano",
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "typeVersion": 1.4,
+            "position": [
+                500,
+                600
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "your-openai-credential-id",
+                    "name": "OpenAI API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-improvements",
+            "name": "Responder Melhorias",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                600
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pagia/ai/generate-tasks",
+                "options": {
+                    "responseMode": "responseNode"
+                }
+            },
+            "id": "webhook-tasks",
+            "name": "Webhook - Gerar Tarefas",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                900
+            ],
+            "webhookId": "pagia-ai-tasks"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o-mini",
+                "options": {
+                    "temperature": 0.7,
+                    "maxTokens": 3000,
+                    "responseFormat": {
+                        "type": "json_object"
+                    }
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "role": "system",
+                            "content": "Você é um gerente de projetos. Dado um plano, gere tarefas detalhadas para execução.\n\nRetorne JSON:\n{\n  \"planName\": \"nome do plano\",\n  \"totalTasks\": número,\n  \"estimatedTotalHours\": número,\n  \"tasks\": [\n    {\n      \"id\": \"task-001\",\n      \"title\": \"Título da tarefa\",\n      \"description\": \"Descrição detalhada\",\n      \"stage\": \"Etapa correspondente\",\n      \"priority\": \"high|medium|low\",\n      \"estimatedHours\": 8,\n      \"dependencies\": [\"task-ids das dependências\"],\n      \"skills\": [\"habilidades necessárias\"],\n      \"acceptanceCriteria\": [\"critérios de aceitação\"]\n    }\n  ]\n}\n\nGere pelo menos 5 tarefas, priorizando as mais importantes."
+                        },
+                        {
+                            "role": "user",
+                            "content": "Gere tarefas para este plano:\n\n{{ JSON.stringify($json.body.plan, null, 2) }}"
+                        }
+                    ]
+                }
+            },
+            "id": "openai-tasks",
+            "name": "OpenAI - Gerar Tarefas",
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "typeVersion": 1.4,
+            "position": [
+                500,
+                900
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "your-openai-credential-id",
+                    "name": "OpenAI API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-tasks",
+            "name": "Responder Tarefas",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                900
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook - Criar Plano com IA": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI - Gerar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI - Gerar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Processar Resposta IA",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Processar Resposta IA": {
+            "main": [
+                [
+                    {
+                        "node": "Plano Válido?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Plano Válido?": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Criar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Responder Erro",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Criar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Sucesso",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Sugerir Melhorias": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI - Analisar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI - Analisar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Melhorias",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Gerar Tarefas": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI - Gerar Tarefas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI - Gerar Tarefas": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Tarefas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": false,
+        "instanceId": "pagia-ai-plan-creator"
+    },
+    "pinData": {},
+    "versionId": "1.0.0",
+    "triggerCount": 3,
+    "tags": [
+        {
+            "name": "PAGIA",
+            "createdAt": "2025-12-25T21:40:00.000Z",
+            "updatedAt": "2025-12-25T21:40:00.000Z"
+        },
+        {
+            "name": "AI",
+            "createdAt": "2025-12-25T21:40:00.000Z",
+            "updatedAt": "2025-12-25T21:40:00.000Z"
+        },
+        {
+            "name": "Plans",
+            "createdAt": "2025-12-25T21:40:00.000Z",
+            "updatedAt": "2025-12-25T21:40:00.000Z"
+        }
+    ]
+}

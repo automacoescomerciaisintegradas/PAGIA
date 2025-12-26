@@ -1,0 +1,11 @@
+id: 1766708821187-nod2ogo6g6
+name: Teste N8N Integration
+description: Plano criado via MCP para testar integra��o n8n
+objectives:
+  - Configurar webhook n8n
+  - Testar cria��o de planos
+  - Automatizar fluxos
+stages: []
+milestones: []
+createdAt: 2025-12-26T00:27:01.187Z
+updatedAt: 2025-12-26T00:27:01.187Z

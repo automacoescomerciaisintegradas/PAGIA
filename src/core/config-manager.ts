@@ -163,12 +163,17 @@ export class ConfigManager {
                     apiKey.startsWith('${')) {
 
                     // Resolve from environment based on provider type
-                    const envKey = this.config.aiProvider.type === 'openai'
-                        ? process.env.OPENAI_API_KEY
-                        : this.config.aiProvider.type === 'anthropic'
-                            ? process.env.ANTHROPIC_API_KEY
-                            : process.env.GEMINI_API_KEY;
+                    const envKeyMap: Record<string, string | undefined> = {
+                        openai: process.env.OPENAI_API_KEY,
+                        anthropic: process.env.ANTHROPIC_API_KEY,
+                        gemini: process.env.GEMINI_API_KEY,
+                        groq: process.env.GROQ_API_KEY,
+                        deepseek: process.env.DEEPSEEK_API_KEY,
+                        mistral: process.env.MISTRAL_API_KEY,
+                        openrouter: process.env.OPENROUTER_API_KEY,
+                    };
 
+                    const envKey = envKeyMap[this.config.aiProvider.type] || process.env.GEMINI_API_KEY;
                     this.config.aiProvider.apiKey = envKey || '';
                 }
             }

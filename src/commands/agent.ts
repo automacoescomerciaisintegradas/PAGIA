@@ -23,45 +23,64 @@ agentCommand
     .description('Listar agentes disponíveis')
     .option('-m, --module <module>', 'Filtrar por módulo')
     .action(async (options) => {
-        const configManager = getConfigManager();
-
-        if (!configManager.isInitialized()) {
-            logger.error('PAGIA não está inicializado.');
-            process.exit(1);
-        }
-
-        const config = configManager.load()!;
-        const pagiaFolder = configManager.getPagiaFolder();
-
         logger.section('Agentes Disponíveis');
 
         let totalAgents = 0;
+        const listedAgents = new Set<string>();
 
-        // Core agents
-        const coreAgentsFolder = join(pagiaFolder, 'core', 'agents');
-        if (existsSync(coreAgentsFolder) && (!options.module || options.module === 'core')) {
-            const agents = listAgentsInFolder(coreAgentsFolder);
+        // 1. PRIMEIRO: Buscar agentes EMBUTIDOS no pacote PAGIA (globais)
+        const bundledAgentsFolder = getBundledAgentsFolder();
+        if (bundledAgentsFolder && existsSync(bundledAgentsFolder) && (!options.module || options.module === 'core')) {
+            const agents = listAgentsInFolder(bundledAgentsFolder);
             if (agents.length > 0) {
-                console.log(chalk.bold('🔧 Core'));
-                agents.forEach((agent) => displayAgent(agent));
+                console.log(chalk.bold('🔧 Core (Embutidos)'));
+                agents.forEach((agent) => {
+                    displayAgent(agent);
+                    listedAgents.add(agent.name);
+                });
                 totalAgents += agents.length;
                 logger.newLine();
             }
         }
 
-        // Module agents
-        for (const module of config.modules.filter((m) => m.enabled)) {
-            if (options.module && options.module !== module.code) continue;
+        // 2. DEPOIS: Buscar agentes LOCAIS do projeto (se inicializado)
+        const configManager = getConfigManager();
+        if (configManager.isInitialized()) {
+            const config = configManager.load()!;
+            const pagiaFolder = configManager.getPagiaFolder();
 
-            const moduleAgentsFolder = join(pagiaFolder, 'modules', module.code, 'agents');
-            if (existsSync(moduleAgentsFolder)) {
-                const agents = listAgentsInFolder(moduleAgentsFolder);
+            // Core agents locais (que não foram listados ainda)
+            const coreAgentsFolder = join(pagiaFolder, 'core', 'agents');
+            if (existsSync(coreAgentsFolder) && (!options.module || options.module === 'core')) {
+                const agents = listAgentsInFolder(coreAgentsFolder).filter(a => !listedAgents.has(a.name));
                 if (agents.length > 0) {
-                    const icon = getModuleIcon(module.code);
-                    console.log(chalk.bold(`${icon} ${module.name}`));
-                    agents.forEach((agent) => displayAgent(agent));
+                    console.log(chalk.bold('🔧 Core (Local)'));
+                    agents.forEach((agent) => {
+                        displayAgent(agent);
+                        listedAgents.add(agent.name);
+                    });
                     totalAgents += agents.length;
                     logger.newLine();
+                }
+            }
+
+            // Module agents
+            for (const module of config.modules.filter((m) => m.enabled)) {
+                if (options.module && options.module !== module.code) continue;
+
+                const moduleAgentsFolder = join(pagiaFolder, 'modules', module.code, 'agents');
+                if (existsSync(moduleAgentsFolder)) {
+                    const agents = listAgentsInFolder(moduleAgentsFolder).filter(a => !listedAgents.has(a.name));
+                    if (agents.length > 0) {
+                        const icon = getModuleIcon(module.code);
+                        console.log(chalk.bold(`${icon} ${module.name}`));
+                        agents.forEach((agent) => {
+                            displayAgent(agent);
+                            listedAgents.add(agent.name);
+                        });
+                        totalAgents += agents.length;
+                        logger.newLine();
+                    }
                 }
             }
         }
@@ -211,16 +230,14 @@ agentCommand
     .action(async (name, options) => {
         const configManager = getConfigManager();
 
-        if (!configManager.isInitialized()) {
-            logger.error('PAGIA não está inicializado.');
-            process.exit(1);
-        }
-
-        const config = configManager.load()!;
-        const agentFile = findAgentFile(configManager.getPagiaFolder(), name, config);
+        // Buscar agente (primeiro embutido, depois local)
+        const pagiaFolder = configManager.isInitialized() ? configManager.getPagiaFolder() : null;
+        const config = configManager.isInitialized() ? configManager.load() : null;
+        const agentFile = findAgentFile(pagiaFolder, name, config);
 
         if (!agentFile) {
             logger.error(`Agente "${name}" não encontrado.`);
+            logger.info('Use `pagia agent list` para ver agentes disponíveis.');
             process.exit(1);
         }
 
@@ -242,7 +259,9 @@ agentCommand
         const spinner = logger.spin('Processando...');
 
         try {
-            const aiService = createAIService(config.aiProvider);
+            // Usar config do projeto se disponível, senão usar .env
+            const aiProviderConfig = config?.aiProvider || getDefaultAIProvider();
+            const aiService = createAIService(aiProviderConfig);
             const response = await aiService.generate(prompt, instructions);
 
             // Stop spinner safely (Windows compatibility)
@@ -350,18 +369,34 @@ function extractInstructions(content: string): string {
     return match ? match[1].trim() : content;
 }
 
-function findAgentFile(pagiaFolder: string, name: string, config: any): string | null {
+function findAgentFile(pagiaFolder: string | null, name: string, config: any): string | null {
     const sanitizedName = sanitizeFilename(name);
-    const possiblePaths = [
-        join(pagiaFolder, 'core', 'agents', `${sanitizedName}.md`),
-        join(pagiaFolder, 'core', 'agents', `${name}.md`),
-    ];
+    const possiblePaths: string[] = [];
 
-    for (const module of config.modules.filter((m: any) => m.enabled)) {
+    // PRIMEIRO: Buscar nos agentes EMBUTIDOS do pacote
+    const bundledFolder = getBundledAgentsFolder();
+    if (bundledFolder) {
         possiblePaths.push(
-            join(pagiaFolder, 'modules', module.code, 'agents', `${sanitizedName}.md`),
-            join(pagiaFolder, 'modules', module.code, 'agents', `${name}.md`)
+            join(bundledFolder, `${sanitizedName}.md`),
+            join(bundledFolder, `${name}.md`)
         );
+    }
+
+    // DEPOIS: Buscar nos agentes locais do projeto
+    if (pagiaFolder) {
+        possiblePaths.push(
+            join(pagiaFolder, 'core', 'agents', `${sanitizedName}.md`),
+            join(pagiaFolder, 'core', 'agents', `${name}.md`)
+        );
+
+        if (config?.modules) {
+            for (const module of config.modules.filter((m: any) => m.enabled)) {
+                possiblePaths.push(
+                    join(pagiaFolder, 'modules', module.code, 'agents', `${sanitizedName}.md`),
+                    join(pagiaFolder, 'modules', module.code, 'agents', `${name}.md`)
+                );
+            }
+        }
     }
 
     for (const path of possiblePaths) {
@@ -388,6 +423,46 @@ function getModuleIcon(moduleCode: string): string {
         core: '🔧',
     };
     return icons[moduleCode] || '📦';
+}
+
+/**
+ * Retorna o caminho da pasta de agentes EMBUTIDOS no pacote PAGIA
+ * Isso permite que os agentes funcionem globalmente sem precisar de pagia init
+ */
+function getBundledAgentsFolder(): string | null {
+    // O pacote PAGIA está instalado em node_modules/pagia ou é o diretório atual
+    // Vamos usar import.meta.url para encontrar o diretório do pacote
+
+    try {
+        // Caminho do arquivo atual (dist/commands/agent.js quando compilado)
+        const currentFileUrl = import.meta.url;
+        const currentFilePath = new URL(currentFileUrl).pathname;
+
+        // No Windows, remove a barra inicial do caminho
+        const normalizedPath = process.platform === 'win32'
+            ? currentFilePath.slice(1)
+            : currentFilePath;
+
+        // O diretório do pacote PAGIA é dois níveis acima (dist/commands -> dist -> raiz)
+        const packageRoot = join(normalizedPath, '..', '..', '..');
+
+        // Os agentes embutidos estão em .pagia/core/agents dentro do pacote
+        const bundledPath = join(packageRoot, '.pagia', 'core', 'agents');
+
+        if (existsSync(bundledPath)) {
+            return bundledPath;
+        }
+
+        // Alternativa: procurar na raiz do projeto PAGIA
+        const altPath = join(packageRoot, '..', '.pagia', 'core', 'agents');
+        if (existsSync(altPath)) {
+            return altPath;
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
 }
 
 function generateDefaultInstructions(agent: Agent): string {
@@ -429,3 +504,59 @@ ${agent.instructions}
 *Agente criado em ${new Date().toISOString()}*
 `;
 }
+
+/**
+ * Obtém configuração de AI Provider a partir das variáveis de ambiente
+ * Usado quando PAGIA não está inicializado no projeto
+ */
+function getDefaultAIProvider(): any {
+    // Detectar provider baseado nas env vars disponíveis
+    const providers = [
+        { type: 'groq', envKey: 'GROQ_API_KEY', model: 'llama-3.3-70b-versatile' },
+        { type: 'gemini', envKey: 'GEMINI_API_KEY', model: 'gemini-2.0-flash-exp' },
+        { type: 'openai', envKey: 'OPENAI_API_KEY', model: 'gpt-4o' },
+        { type: 'anthropic', envKey: 'ANTHROPIC_API_KEY', model: 'claude-sonnet-4-20250514' },
+        { type: 'deepseek', envKey: 'DEEPSEEK_API_KEY', model: 'deepseek-chat' },
+        { type: 'mistral', envKey: 'MISTRAL_API_KEY', model: 'mistral-large-latest' },
+        { type: 'openrouter', envKey: 'OPENROUTER_API_KEY', model: 'anthropic/claude-sonnet-4' },
+    ];
+
+    // Usar AI_PROVIDER se definido
+    const preferredProvider = process.env.AI_PROVIDER?.toLowerCase();
+    if (preferredProvider) {
+        const provider = providers.find(p => p.type === preferredProvider);
+        if (provider && process.env[provider.envKey]) {
+            return {
+                type: provider.type,
+                apiKey: process.env[provider.envKey],
+                model: process.env.AI_MODEL || provider.model,
+                temperature: 0.7,
+                maxTokens: 8192,
+            };
+        }
+    }
+
+    // Fallback: usar primeiro provider disponível
+    for (const provider of providers) {
+        if (process.env[provider.envKey]) {
+            return {
+                type: provider.type,
+                apiKey: process.env[provider.envKey],
+                model: process.env.AI_MODEL || provider.model,
+                temperature: 0.7,
+                maxTokens: 8192,
+            };
+        }
+    }
+
+    // Nenhum provider configurado
+    throw new Error(
+        'Nenhuma API key de IA configurada. Configure uma das seguintes variáveis de ambiente:\n' +
+        '  - GROQ_API_KEY\n' +
+        '  - GEMINI_API_KEY\n' +
+        '  - OPENAI_API_KEY\n' +
+        '  - ANTHROPIC_API_KEY\n' +
+        'Ou inicialize o projeto com `pagia init`'
+    );
+}
+

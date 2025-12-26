@@ -1,0 +1,26 @@
+id: 1766710325082-wdj5d589xus
+name: Chatbot Inteligente ACI
+description: Sistema de chatbot com IA para atendimento automatizado de
+  clientes, integrado com WhatsApp e CRM
+objectives:
+  - Reduzir tempo de resposta ao cliente em 70%
+  - Automatizar 80% das perguntas frequentes
+  - Integrar com base de conhecimento existente
+  - Implementar handoff para atendente humano
+  - Gerar relat�rios de satisfa��o do cliente
+  - Implementar an�lise de sentimento nas conversas
+stages:
+  - "Fase 1: Levantamento de Requisitos e FAQs"
+  - "Fase 2: Treinamento do Modelo de IA"
+  - "Fase 3: Desenvolvimento da Integra��o WhatsApp"
+  - "Fase 4: Interface de Administra��o"
+  - "Fase 5: Testes com Usu�rios Reais"
+  - "Fase 6: Deploy e Monitoramento"
+  - "Fase 7: Implementa��o de Analytics Avan�ado"
+milestones:
+  - MVP funcionando em ambiente de teste - 1 semana
+  - Integra��o WhatsApp completa - 2 semanas
+  - Beta com 10 clientes piloto - 3 semanas
+  - Lan�amento oficial - 4 semanas
+createdAt: 2025-12-26T00:52:05.082Z
+updatedAt: 2025-12-26T00:52:05.724Z

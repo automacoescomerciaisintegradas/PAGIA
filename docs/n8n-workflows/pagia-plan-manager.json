@@ -1,0 +1,463 @@
+{
+    "name": "PAGIA - Gerenciador de Planos via MCP",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "pagia/plan/create",
+                "options": {}
+            },
+            "id": "webhook-create",
+            "name": "Webhook - Criar Plano",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                300
+            ],
+            "webhookId": "pagia-plan-create"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.create",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "value": "={{ $json.body.name }}"
+                        },
+                        {
+                            "name": "type",
+                            "value": "={{ $json.body.type || 'global' }}"
+                        },
+                        {
+                            "name": "description",
+                            "value": "={{ $json.body.description || '' }}"
+                        },
+                        {
+                            "name": "objectives",
+                            "value": "={{ $json.body.objectives || [] }}"
+                        },
+                        {
+                            "name": "stages",
+                            "value": "={{ $json.body.stages || [] }}"
+                        },
+                        {
+                            "name": "milestones",
+                            "value": "={{ $json.body.milestones || [] }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-create",
+            "name": "MCP - Criar Plano",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-create",
+            "name": "Responder Criação",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "pagia/plans",
+                "options": {}
+            },
+            "id": "webhook-list",
+            "name": "Webhook - Listar Planos",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                500
+            ],
+            "webhookId": "pagia-plan-list"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.list",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "value": "={{ $json.query.type || 'all' }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-list",
+            "name": "MCP - Listar Planos",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                500,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-list",
+            "name": "Responder Lista",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "pagia/plan/:name",
+                "options": {}
+            },
+            "id": "webhook-view",
+            "name": "Webhook - Ver Plano",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                700
+            ],
+            "webhookId": "pagia-plan-view"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.view",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "value": "={{ $json.params.name }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-view",
+            "name": "MCP - Ver Plano",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                500,
+                700
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-view",
+            "name": "Responder Visualização",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                700
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "PUT",
+                "path": "pagia/plan/:name",
+                "options": {}
+            },
+            "id": "webhook-update",
+            "name": "Webhook - Atualizar Plano",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                900
+            ],
+            "webhookId": "pagia-plan-update"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.update",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "value": "={{ $json.params.name }}"
+                        },
+                        {
+                            "name": "description",
+                            "value": "={{ $json.body.description }}"
+                        },
+                        {
+                            "name": "objectives",
+                            "value": "={{ $json.body.objectives }}"
+                        },
+                        {
+                            "name": "stages",
+                            "value": "={{ $json.body.stages }}"
+                        },
+                        {
+                            "name": "milestones",
+                            "value": "={{ $json.body.milestones }}"
+                        },
+                        {
+                            "name": "addObjective",
+                            "value": "={{ $json.body.addObjective }}"
+                        },
+                        {
+                            "name": "addStage",
+                            "value": "={{ $json.body.addStage }}"
+                        },
+                        {
+                            "name": "addMilestone",
+                            "value": "={{ $json.body.addMilestone }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-update",
+            "name": "MCP - Atualizar Plano",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                500,
+                900
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-update",
+            "name": "Responder Atualização",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                900
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "DELETE",
+                "path": "pagia/plan/:name",
+                "options": {}
+            },
+            "id": "webhook-delete",
+            "name": "Webhook - Deletar Plano",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                1100
+            ],
+            "webhookId": "pagia-plan-delete"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3100/tools/pagia.plan.delete",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "value": "={{ $json.params.name }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-delete",
+            "name": "MCP - Deletar Plano",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                500,
+                1100
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-delete",
+            "name": "Responder Deleção",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                740,
+                1100
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook - Criar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Criar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Criar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Criação",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Listar Planos": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Listar Planos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Listar Planos": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Lista",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Ver Plano": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Ver Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Ver Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Visualização",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Atualizar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Atualizar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Atualizar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Atualização",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Deletar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "MCP - Deletar Plano",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "MCP - Deletar Plano": {
+            "main": [
+                [
+                    {
+                        "node": "Responder Deleção",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "pagia-mcp-integration"
+    },
+    "pinData": {},
+    "versionId": "1.0.0",
+    "triggerCount": 5,
+    "tags": [
+        {
+            "name": "PAGIA",
+            "createdAt": "2025-12-25T21:25:00.000Z",
+            "updatedAt": "2025-12-25T21:25:00.000Z"
+        },
+        {
+            "name": "MCP",
+            "createdAt": "2025-12-25T21:25:00.000Z",
+            "updatedAt": "2025-12-25T21:25:00.000Z"
+        }
+    ]
+}

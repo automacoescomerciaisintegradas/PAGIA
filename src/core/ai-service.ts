@@ -329,7 +329,7 @@ export class AIService {
                     temperature: this.provider.temperature || 0.7,
                     maxOutputTokens: this.provider.maxTokens || 8192,
                 },
-                systemInstruction: systemInstruction || undefined,
+                systemInstruction: systemInstruction ? { role: 'user', parts: [{ text: systemInstruction }] } : undefined,
             });
 
             const lastMessage = chatHistory[chatHistory.length - 1];

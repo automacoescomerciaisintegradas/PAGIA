@@ -213,11 +213,26 @@ async function createGlobalPlan(name: string, useAI: boolean, config: any): Prom
         );
 
         try {
-            const generated = JSON.parse(response.content.replace(/```json\n?|\n?```/g, ''));
+            // Extract JSON from response - find the first { and last }
+            const content = response.content;
+            const firstBrace = content.indexOf('{');
+            const lastBrace = content.lastIndexOf('}');
+
+            if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+                throw new Error('No valid JSON object found in response');
+            }
+
+            const jsonContent = content.substring(firstBrace, lastBrace + 1);
+            const generated = JSON.parse(jsonContent);
             plan.objectives = generated.objectives || [];
             plan.stages = generated.stages || [];
             plan.milestones = generated.milestones || [];
-        } catch {
+        } catch (e) {
+            // Log error for debugging only if debug mode
+            if (process.env.PAGIA_DEBUG === 'true') {
+                console.error('Failed to parse AI response:', e);
+                console.error('Raw response:', response.content);
+            }
             // Keep empty arrays if parsing fails
         }
     }
@@ -265,10 +280,18 @@ async function createPromptPlan(name: string, config: any): Promise<PromptPlan> 
     let confidence = 0.8;
 
     try {
-        const generated = JSON.parse(response.content.replace(/```json\n?|\n?```/g, ''));
-        interpretation = generated.interpretation || '';
-        tasks = generated.tasks || [];
-        confidence = generated.confidence || 0.8;
+        // Extract JSON from response - find the first { and last }
+        const content = response.content;
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            const jsonContent = content.substring(firstBrace, lastBrace + 1);
+            const generated = JSON.parse(jsonContent);
+            interpretation = generated.interpretation || '';
+            tasks = generated.tasks || [];
+            confidence = generated.confidence || 0.8;
+        }
     } catch {
         // Keep defaults if parsing fails
     }
@@ -308,9 +331,17 @@ async function createAIPlan(name: string, config: any): Promise<AIPlan> {
     let recommendations: any[] = [];
 
     try {
-        const generated = JSON.parse(response.content.replace(/```json\n?|\n?```/g, ''));
-        analysis = generated.analysis || analysis;
-        recommendations = generated.recommendations || [];
+        // Extract JSON from response - find the first { and last }
+        const content = response.content;
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            const jsonContent = content.substring(firstBrace, lastBrace + 1);
+            const generated = JSON.parse(jsonContent);
+            analysis = generated.analysis || analysis;
+            recommendations = generated.recommendations || [];
+        }
     } catch {
         // Keep defaults if parsing fails
     }

@@ -75,12 +75,26 @@ export const initCommand = new Command('init')
                 {
                     type: 'input',
                     name: 'apiKey',
-                    message: (answers: any) => `API Key do ${answers.aiProvider}:`,
-                    when: (answers: any) => answers.aiProvider !== 'ollama',
-                    validate: (input: string) => {
-                        if (!input.trim()) {
-                            return 'API Key é obrigatória. Você pode configurar depois em .env';
+                    message: (answers: any) => {
+                        const envKey = getEnvApiKey(answers.aiProvider);
+                        if (envKey) {
+                            return `API Key do ${answers.aiProvider} (detectada no .env, pressione Enter para usar):`;
                         }
+                        return `API Key do ${answers.aiProvider} (ou deixe vazio se já estiver no .env):`;
+                    },
+                    when: (answers: any) => {
+                        // Só perguntar se não for ollama E não tiver key no .env
+                        if (answers.aiProvider === 'ollama') return false;
+                        const envKey = getEnvApiKey(answers.aiProvider);
+                        if (envKey) {
+                            // Key já existe no .env, não precisa perguntar
+                            console.log(chalk.green(`\n   ✓ API Key do ${answers.aiProvider} detectada no .env`));
+                            return false;
+                        }
+                        return true;
+                    },
+                    validate: (input: string) => {
+                        // Permite vazio se já tiver no .env
                         return true;
                     },
                 },
@@ -110,13 +124,23 @@ export const initCommand = new Command('init')
                 },
             ]);
 
+            // Determinar a API key a usar (prioridade: resposta > .env)
+            let apiKeyToUse = answers.apiKey;
+            if (!apiKeyToUse && answers.aiProvider !== 'ollama') {
+                const envKey = getEnvApiKey(answers.aiProvider);
+                if (envKey) {
+                    // Usar referência à variável de ambiente em vez do valor
+                    apiKeyToUse = `$env:${getEnvKeyName(answers.aiProvider)}`;
+                }
+            }
+
             config = {
                 userName: answers.userName,
                 language: answers.language,
                 debug: answers.debug,
                 aiProvider: {
                     type: answers.aiProvider as AIProviderType,
-                    apiKey: answers.apiKey,
+                    apiKey: apiKeyToUse,
                     model: getDefaultModel(answers.aiProvider),
                 },
                 modules: createModulesConfig(answers.modules),
@@ -128,6 +152,15 @@ export const initCommand = new Command('init')
 
         try {
             const finalConfig = await configManager.initialize(config);
+
+            spinner.text = 'Instalando agentes padrão...';
+
+            // Instalar agentes automaticamente
+            const { setupBMADAgents } = await import('../scripts/setup-bmad-agents.js');
+            await setupBMADAgents();
+
+            // Instalar agentes extras (plan-creator, code-optimizer, dev)
+            await installExtraAgents(configManager.getPagiaFolder());
 
             spinner.succeed('PAGIA inicializado com sucesso!');
 
@@ -194,3 +227,195 @@ function createModulesConfig(selectedModules: string[]): ModuleConfig[] {
         enabled: module.code === 'core' || selectedModules.includes(module.code),
     }));
 }
+
+function getEnvApiKey(provider: string): string | undefined {
+    const envKeys: Record<string, string> = {
+        gemini: 'GEMINI_API_KEY',
+        openai: 'OPENAI_API_KEY',
+        anthropic: 'ANTHROPIC_API_KEY',
+        groq: 'GROQ_API_KEY',
+        deepseek: 'DEEPSEEK_API_KEY',
+        mistral: 'MISTRAL_API_KEY',
+        openrouter: 'OPENROUTER_API_KEY',
+    };
+
+    const envKey = envKeys[provider];
+    if (envKey && process.env[envKey]) {
+        return process.env[envKey];
+    }
+    return undefined;
+}
+
+function getEnvKeyName(provider: string): string {
+    const envKeys: Record<string, string> = {
+        gemini: 'GEMINI_API_KEY',
+        openai: 'OPENAI_API_KEY',
+        anthropic: 'ANTHROPIC_API_KEY',
+        groq: 'GROQ_API_KEY',
+        deepseek: 'DEEPSEEK_API_KEY',
+        mistral: 'MISTRAL_API_KEY',
+        openrouter: 'OPENROUTER_API_KEY',
+    };
+    return envKeys[provider] || `${provider.toUpperCase()}_API_KEY`;
+}
+
+async function installExtraAgents(pagiaFolder: string): Promise<void> {
+    const { existsSync, writeFileSync, mkdirSync } = await import('fs');
+    const { join } = await import('path');
+
+    const agentsFolder = join(pagiaFolder, 'core', 'agents');
+
+    if (!existsSync(agentsFolder)) {
+        mkdirSync(agentsFolder, { recursive: true });
+    }
+
+    const extraAgents = [
+        {
+            id: 'dev',
+            name: 'Dev',
+            role: 'Agente de Desenvolvimento de Código',
+            content: `# Dev
+
+## Papel
+Agente de Desenvolvimento de Código
+
+## Descrição
+Agente especializado em desenvolvimento de código, implementação de funcionalidades e boas práticas de programação.
+
+## Capacidades
+- Desenvolvimento de código limpo
+- Implementação de funcionalidades
+- Refatoração de código
+- Debugging e correção de bugs
+- Integração de APIs
+- Testes unitários
+
+## Instruções
+Como Desenvolvedor, você deve:
+
+1. **Código Limpo:**
+   - Seguir princípios SOLID
+   - Usar nomes descritivos
+   - Manter funções pequenas
+
+2. **Implementação:**
+   - Analisar requisitos antes de codificar
+   - Considerar edge cases
+   - Documentar código complexo
+
+3. **Qualidade:**
+   - Escrever testes
+   - Fazer code review
+   - Otimizar performance
+
+## Menu
+- \`/code\` - Gerar código
+- \`/refactor\` - Refatorar código
+- \`/debug\` - Debugar problema
+- \`/test\` - Criar testes
+
+---
+*Agente PAGIA - Gerado automaticamente*
+`,
+        },
+        {
+            id: 'plan-creator',
+            name: 'Plan Creator',
+            role: 'Especialista em Planejamento Estratégico',
+            content: `# Plan Creator
+
+## Papel
+Especialista em Planejamento Estratégico
+
+## Descrição
+Agente especializado em criar planos de ação estruturados, detalhados e prontos para execução.
+
+## Capacidades
+- Análise de requisitos e escopo
+- Definição de objetivos SMART
+- Estruturação de etapas lógicas
+- Estimativa de prazos realistas
+- Identificação de riscos
+- Critérios de sucesso
+
+## Instruções
+Transforme solicitações do usuário em planos de ação completos.
+
+Responda em **JSON válido**:
+\`\`\`json
+{
+  "name": "Nome do Plano",
+  "type": "global",
+  "description": "Descrição detalhada",
+  "objectives": ["Objetivo 1", "Objetivo 2"],
+  "stages": ["Etapa 1", "Etapa 2"],
+  "milestones": ["Marco 1", "Marco 2"]
+}
+\`\`\`
+
+Regras:
+1. Seja Específico
+2. Seja Realista
+3. Mínimo 3 objetivos, 4 etapas, 3 marcos
+
+## Menu
+- \`/plan\` - Criar plano
+- \`/objectives\` - Definir objetivos
+- \`/roadmap\` - Criar roadmap
+
+---
+*Agente PAGIA - Gerado automaticamente*
+`,
+        },
+        {
+            id: 'code-optimizer',
+            name: 'Code Optimizer',
+            role: 'Especialista em Otimização e Refatoração',
+            content: `# Code Optimizer
+
+## Papel
+Especialista em Otimização e Refatoração
+
+## Descrição
+Agente especializado em análise, otimização e refatoração de código para melhorar performance, legibilidade e manutenibilidade.
+
+## Capacidades
+- Análise de complexidade (Big O)
+- Identificação de code smells
+- Refatoração para padrões de design
+- Otimização de queries e loops
+- Melhoria de legibilidade
+- Aplicação de princípios SOLID
+
+## Instruções
+Analise código e forneça sugestões de otimização:
+
+1. **Resumo de Qualidade**: X/10
+2. **Problemas Críticos**: Lista com soluções
+3. **Melhorias Sugeridas**: Código antes/depois
+4. **Código Otimizado**: Versão refatorada
+
+Regras:
+- Preserve funcionalidade
+- Justifique mudanças
+- Priorize por impacto
+
+## Menu
+- \`/optimize\` - Otimizar código
+- \`/analyze\` - Analisar qualidade
+- \`/refactor\` - Refatorar código
+
+---
+*Agente PAGIA - Gerado automaticamente*
+`,
+        },
+    ];
+
+    for (const agent of extraAgents) {
+        const filePath = join(agentsFolder, `${agent.id}.md`);
+        if (!existsSync(filePath)) {
+            writeFileSync(filePath, agent.content, 'utf-8');
+        }
+    }
+}
+
