@@ -3,6 +3,8 @@
 ## Inspiração
 - [Claude Code Plugins](https://github.com/anthropics/claude-code/blob/main/plugins/README.md)
 - [Microsoft 365 Agents Toolkit CLI](https://github.com/MicrosoftDocs/msteams-docs/blob/main/msteams-platform/toolkit/Microsoft-365-Agents-Toolkit-CLI.md)
+- [GitHub CLI (gh)](https://github.com/cli/cli) - CLI oficial do GitHub
+- [LSP (Language Server Protocol)](https://microsoft.github.io/language-server-protocol/) - Integração com editores
 
 ---
 
