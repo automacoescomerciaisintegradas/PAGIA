@@ -23,6 +23,9 @@ export { ProductOwnerAgent, productOwnerAgent } from './specialized/product-owne
 export { ArchitectAgent, architectAgent } from './specialized/architect-agent.js';
 export { ScrumMasterAgent, scrumMasterAgent } from './specialized/scrum-master-agent.js';
 export { QAAgent, qaAgent } from './specialized/qa-agent.js';
+export { WorkflowBuildingMasterAgent, workflowBuildingMasterAgent } from './specialized/workflow-building-master-agent.js';
+export { AgentBuildingExpertAgent, agentBuildingExpertAgent } from './specialized/agent-building-expert-agent.js';
+export { ModuleCreationMasterAgent, moduleCreationMasterAgent } from './specialized/module-creation-master-agent.js';
 
 // Integração com Inngest AgentKit
 export { InngestAdapter, inngestAdapter } from './inngest-adapter.js';

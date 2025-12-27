@@ -4,9 +4,9 @@ language: pt-BR
 userName: Developer
 debug: false
 aiProvider:
-  type: groq
-  apiKey: ${GROQ_API_KEY}
-  model: llama-3.3-70b-versatile
+  type: openrouter
+  apiKey: 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
+  model: google/gemini-flash-1.5
   temperature: 0.7
   maxTokens: 8192
 modules:
