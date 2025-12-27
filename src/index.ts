@@ -35,18 +35,26 @@ config();
 // Windows fix: Prevent UV_HANDLE_CLOSING assertion crash
 // This is a known issue with Node.js on Windows when using certain terminal features
 if (process.platform === 'win32') {
-    process.on('exit', () => {
-        // Ensure clean exit on Windows
-    });
+    // Suppress UV_HANDLE errors on Windows by overriding process.exit
+    const originalExit = process.exit;
+    (process.exit as any) = (code?: number) => {
+        // Ensure all streams are drained
+        process.stdout.write('', () => {
+            process.stderr.write('', () => {
+                // Delay exit slightly to let handles close
+                setTimeout(() => originalExit(code), 50);
+            });
+        });
+    };
 
     // Suppress uncaught exceptions related to UV_HANDLE
     process.on('uncaughtException', (err) => {
-        if (err.message && err.message.includes('UV_HANDLE')) {
-            // Ignore UV_HANDLE errors on Windows
-            process.exit(0);
+        if (err.message && (err.message.includes('UV_HANDLE') || err.message.includes('flags & UV_HANDLE_CLOSING'))) {
+            // Force clean exit
+            originalExit(0);
         }
         console.error('Uncaught exception:', err);
-        process.exit(1);
+        originalExit(1);
     });
 }
 

@@ -291,7 +291,19 @@ agentCommand
             }
         } catch (error) {
             spinner.fail('Erro ao executar agente');
-            logger.error(error instanceof Error ? error.message : String(error));
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error(errorMessage);
+
+            if (errorMessage.includes('401') || errorMessage.includes('API Key inválida')) {
+                logger.newLine();
+                logger.warn('Parece que sua API Key é inválida ou expirou.');
+                logger.info('Você pode atualizar a configuração com:');
+                console.log(chalk.cyan('  pagia config set aiProvider.apiKey "SUA_NOVA_CHAVE"'));
+                console.log(chalk.cyan('  pagia config set aiProvider.type "groq" (ou openai, gemini)'));
+                logger.newLine();
+                logger.info('Dica: O comando "pagia doctor" pode ajudar a verificar suas chaves.');
+            }
+
             process.exit(1);
         }
     });
