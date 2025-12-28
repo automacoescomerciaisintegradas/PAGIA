@@ -28,6 +28,7 @@ import { registryCommand } from './commands/registry.js';
 import { conductorCommand } from './commands/conductor.js';
 import { doctorCommand } from './commands/doctor.js';
 import { pluginCommand } from './commands/plugin.js';
+import { skillCommand } from './commands/skill.js';
 
 // Load environment variables
 config();
@@ -107,6 +108,7 @@ program.addCommand(registryCommand);
 program.addCommand(conductorCommand);
 program.addCommand(doctorCommand);
 program.addCommand(pluginCommand);
+program.addCommand(skillCommand);
 
 // Parse arguments
 program.parse(process.argv);

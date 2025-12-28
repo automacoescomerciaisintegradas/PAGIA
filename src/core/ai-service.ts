@@ -89,10 +89,10 @@ const PROVIDER_CONFIGS: Record<string, ProviderEndpoint> = {
         defaultModel: 'anthropic/claude-sonnet-4',
     },
     ollama: {
-        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+        baseUrl: process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
         apiKeyEnv: '',
         modelEnv: 'OLLAMA_MODEL',
-        defaultModel: 'llama3.2',
+        defaultModel: process.env.OLLAMA_MODEL || 'llama3.1:latest',
     },
 };
 
@@ -170,7 +170,7 @@ export class AIService {
      * Inicializa cliente Ollama (usa formato OpenAI)
      */
     private initOllamaClient(): void {
-        const baseURL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+        const baseURL = process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
         this.openaiCompatibleClient = new OpenAI({
             apiKey: 'ollama', // Ollama não precisa de API key
             baseURL: `${baseURL}/v1`,
