@@ -14,6 +14,7 @@ import { logger } from '../utils/logger.js';
 import { setupBMADAgents, BMAD_AGENTS } from '../scripts/setup-bmad-agents.js';
 import { pluginManager } from '../core/plugin-system.js';
 import type { Agent } from '../types/index.js';
+import { agentRegistry } from '../agents/agent-registry.js';
 
 export const agentCommand = new Command('agent')
     .description('Gerenciar agentes PAGIA');
@@ -23,6 +24,7 @@ agentCommand
     .command('list')
     .description('Listar agentes disponíveis')
     .option('-m, --module <module>', 'Filtrar por módulo')
+    .option('-v, --verbose', 'Mostrar detalhes adicionais')
     .action(async (options) => {
         logger.section('Agentes Disponíveis');
 
@@ -36,7 +38,7 @@ agentCommand
             if (agents.length > 0) {
                 console.log(chalk.bold('🔧 Core (Embutidos)'));
                 agents.forEach((agent) => {
-                    displayAgent(agent);
+                    displayAgent(agent, options.verbose);
                     listedAgents.add(agent.name);
                 });
                 totalAgents += agents.length;
@@ -57,7 +59,7 @@ agentCommand
                 if (agents.length > 0) {
                     console.log(chalk.bold('🔧 Core (Local)'));
                     agents.forEach((agent) => {
-                        displayAgent(agent);
+                        displayAgent(agent, options.verbose, options.verbose);
                         listedAgents.add(agent.name);
                     });
                     totalAgents += agents.length;
@@ -84,6 +86,17 @@ agentCommand
                     }
                 }
             }
+        }
+
+        // Além de listar agentes a partir dos arquivos .md, também incluir agentes programáticos já registrados
+        const programmatic = agentRegistry.list();
+        const progToShow = programmatic.filter(a => !listedAgents.has(a.name));
+
+        if (progToShow.length > 0) {
+            console.log(chalk.bold('🔌 Agentes Programáticos'));
+            progToShow.forEach((a) => displayAgent({ name: a.name, role: a.role, module: a.module, capabilities: a.capabilities, enabled: agentRegistry.isEnabled(a.id) }, options.verbose));
+            totalAgents += progToShow.length;
+            logger.newLine();
         }
 
         if (totalAgents === 0) {
@@ -384,15 +397,44 @@ function listAgentsInFolder(folder: string): { name: string; file: string }[] {
         }));
 }
 
-function displayAgent(agent: { name: string; file: string }): void {
-    const content = readFileSync(agent.file, 'utf-8');
-    const role = extractRole(content);
+function displayAgent(agent: { name: string; file?: string } | { name: string; role?: string; module?: string; capabilities?: string[]; enabled?: boolean }, verbose?: boolean): void {
+    if ((agent as any).file) {
+        const content = readFileSync((agent as any).file, 'utf-8');
+        const role = extractRole(content);
+        console.log(`  ${chalk.cyan('•')} ${agent.name}${role ? chalk.gray(` - ${role}`) : ''}`);
+
+        if (verbose) {
+            const caps = extractCapabilities(content);
+            if (caps.length > 0) {
+                console.log(chalk.gray(`    Capacidades: ${caps.join(', ')}`));
+            }
+        }
+
+        return;
+    }
+
+    // Programmatic agent
+    const role = (agent as any).role;
     console.log(`  ${chalk.cyan('•')} ${agent.name}${role ? chalk.gray(` - ${role}`) : ''}`);
+
+    if (verbose) {
+        const caps = (agent as any).capabilities || [];
+        const moduleName = (agent as any).module || 'unknown';
+        const enabled = (agent as any).enabled === false ? 'disabled' : 'enabled';
+        if (caps.length > 0) console.log(chalk.gray(`    Capacidades: ${caps.join(', ')}`));
+        console.log(chalk.gray(`    Módulo: ${moduleName} | Status: ${enabled}`));
+    }
 }
 
 function extractRole(content: string): string {
     const match = content.match(/## Papel\s*\n([^\n]+)/);
     return match ? match[1].trim() : '';
+}
+
+function extractCapabilities(content: string): string[] {
+    const match = content.match(/## Capacidades\s*\n([\s\S]+?)(?=\n## |$)/);
+    if (!match) return [];
+    return match[1].split('\n').map(s => s.replace(/^-\s*/, '').trim()).filter(Boolean);
 }
 
 function extractInstructions(content: string): string {
