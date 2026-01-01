@@ -33,4 +33,16 @@ Objetivo: agilizar revisões mantendo qualidade e segurança.
 - Se o PR afeta agentes, execute `pagia agent list` para ver se o agente exposto aparece (após build/link local).
 - Para dúvidas, comente pedindo um cenário de reprodução ou exemplo de input/expected output.
 
+### Checklist específico para PRs que tocam IA / provedores ⚠️
+
+- [ ] Testes unitários cobrem chamadas de IA com mocks (`createAIService()` via `vi.mock(...)`).
+- [ ] Testes simulam cenários de fallback/erro (quota, rate-limit, timeouts).
+- [ ] Novas variáveis de ambiente documentadas em `README.md` e em `.env.sample` (quando aplicável).
+- [ ] Não existem chaves ou segredos embutidos nos commits.
+- [ ] Mensagens de erro são seguras e informativas (sem expor dados sensíveis).
+- [ ] Para modelos locais (Ollama), inclua instruções de inicialização (`ollama serve`) e teste local.
+- [ ] Considere impacto em custo/token e adicione nota de monitoramento/telemetria se necessário.
+- [ ] Atualize `CHANGELOG.md` com entrada em **Unreleased** quando aplicável.
+- [ ] Em alterações breaking (mudança de modelo padrão, esquema de resposta, etc.), adicione instruções de migração/rollback.
+
 Obrigado por revisar com cuidado! 🚀
