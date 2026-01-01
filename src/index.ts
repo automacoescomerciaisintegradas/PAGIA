@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 /**
  * PAGIA - Plano de Ação de Gestão e Implementação com IA
- * CLI Principal
+ * CLI Principal Premium
  * 
  * @author Automações Comerciais Integradas
  * @version 1.0.0
  */
 
 import { Command } from 'commander';
-import figlet from 'figlet';
-import chalk from 'chalk';
 import { config } from 'dotenv';
+import { logger } from './utils/logger.js';
 
 // Commands
 import { initCommand } from './commands/init.js';
@@ -34,24 +33,18 @@ import { skillCommand } from './commands/skill.js';
 config();
 
 // Windows fix: Prevent UV_HANDLE_CLOSING assertion crash
-// This is a known issue with Node.js on Windows when using certain terminal features
 if (process.platform === 'win32') {
-    // Suppress UV_HANDLE errors on Windows by overriding process.exit
     const originalExit = process.exit;
     (process.exit as any) = (code?: number) => {
-        // Ensure all streams are drained
         process.stdout.write('', () => {
             process.stderr.write('', () => {
-                // Delay exit slightly to let handles close
                 setTimeout(() => originalExit(code), 50);
             });
         });
     };
 
-    // Suppress uncaught exceptions related to UV_HANDLE
     process.on('uncaughtException', (err) => {
         if (err.message && (err.message.includes('UV_HANDLE') || err.message.includes('flags & UV_HANDLE_CLOSING'))) {
-            // Force clean exit
             originalExit(0);
         }
         console.error('Uncaught exception:', err);
@@ -59,33 +52,46 @@ if (process.platform === 'win32') {
     });
 }
 
+const VERSION: string = '1.0.0';
+const LATEST_VERSION: string = '1.0.5'; // Simulation for update notice
+
 const program = new Command();
 
-// ASCII Art Banner
-function showBanner(): void {
-    console.log(
-        chalk.cyan(
-            figlet.textSync('PAGIA', {
-                font: 'ANSI Shadow',
-                horizontalLayout: 'default',
-            })
-        )
-    );
-    console.log(
-        chalk.gray('  Plano de Ação de Gestão e Implementação com IA')
-    );
-    console.log(
-        chalk.gray('  © 2025 Automações Comerciais Integradas\n')
-    );
+// Show Premium Banner and Welcome
+function showWelcome(): void {
+    logger.welcome(VERSION, process.cwd());
+
+    // Show update notice if simulated version is newer
+    if (VERSION !== LATEST_VERSION) {
+        logger.updateNotice(VERSION, LATEST_VERSION, [
+            'Estética e layout da CLI aprimorados',
+            'Sessões de chat persistentes com agentes',
+            'Nova integração de ferramentas MCP para agentes',
+            'Correção de problemas de compatibilidade com terminal Windows'
+        ]);
+    }
+
+    logger.banner();
+
+    logger.tips([
+        'Faça perguntas, edite arquivos ou execute comandos.',
+        'Use \`pagia agent run analyst\` para iniciar uma análise de projeto.',
+        'Crie um projeto com \`pagia init\` e gerencie tarefas com \`pagia plan\`.',
+        'Digite \`pagia help\` para mais informações.',
+        'Modo inteligente ativado por padrão.'
+    ]);
 }
 
 // Main CLI setup
 program
     .name('pagia')
     .description('PAGIA - Plano de Ação de Gestão e Implementação com IA')
-    .version('1.0.0')
-    .hook('preAction', () => {
-        showBanner();
+    .version(VERSION)
+    .hook('preAction', (thisCommand) => {
+        // Only show welcome if it's the main command or agent run/list
+        if (thisCommand.name() === 'pagia' || ['run', 'list', 'agent'].includes(thisCommand.name())) {
+            showWelcome();
+        }
     });
 
 // Register core commands
@@ -115,7 +121,8 @@ program.parse(process.argv);
 
 // If no command provided, show help
 if (!process.argv.slice(2).length) {
-    showBanner();
+    showWelcome();
     program.outputHelp();
 }
+
 

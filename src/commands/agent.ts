@@ -12,6 +12,7 @@ import { getConfigManager } from '../core/config-manager.js';
 import { createAIService } from '../core/ai-service.js';
 import { logger } from '../utils/logger.js';
 import { setupBMADAgents, BMAD_AGENTS } from '../scripts/setup-bmad-agents.js';
+import { pluginManager } from '../core/plugin-system.js';
 import type { Agent } from '../types/index.js';
 
 export const agentCommand = new Command('agent')
@@ -225,8 +226,8 @@ agentCommand
 // Run agent subcommand
 agentCommand
     .command('run <name>')
-    .description('Executar um agente')
-    .option('-p, --prompt <prompt>', 'Prompt para o agente')
+    .description('Executar um agente (Chat interativo)')
+    .option('-p, --prompt <prompt>', 'Prompt inicial (execução única)')
     .action(async (name, options) => {
         const configManager = getConfigManager();
 
@@ -244,69 +245,87 @@ agentCommand
         const agentContent = readFileSync(agentFile, 'utf-8');
         const instructions = extractInstructions(agentContent);
 
+        // UI Header for agent session
+        console.log(chalk.cyan(`\n  🤖 ${chalk.bold(name.toUpperCase())} Sessão iniciada`));
+        console.log(chalk.gray(`  ${'─'.repeat(50)}`));
+
         let prompt = options.prompt;
-        if (!prompt) {
-            const answer = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'prompt',
-                    message: `[${name}] Digite sua solicitação:`,
-                },
-            ]);
-            prompt = answer.prompt;
-        }
+        // Se prompt foi passado via flag, executa uma vez e sai. Se não, entra em modo interativo.
+        let isInteractive = !prompt;
 
-        const spinner = logger.spin('Processando...');
+        // Loop principal para chat interativo
+        do {
+            if (isInteractive) {
+                const answer = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'prompt',
+                        message: chalk.cyan('>'),
+                        prefix: '',
+                    },
+                ]);
+                prompt = answer.prompt;
 
-        try {
-            // Usar config do projeto se disponível, senão usar .env
-            const aiProviderConfig = config?.aiProvider || getDefaultAIProvider();
-            const aiService = createAIService(aiProviderConfig);
-            const response = await aiService.generate(prompt, instructions);
-
-            // Stop spinner safely (Windows compatibility)
-            try {
-                spinner.stop();
-            } catch {
-                // Ignore spinner errors on Windows
+                if (!prompt || prompt.toLowerCase() === 'exit' || prompt.toLowerCase() === '/exit' || prompt.toLowerCase() === 'sair') {
+                    console.log(chalk.yellow('\nEncerrando sessão do agente...'));
+                    break;
+                }
             }
 
-            // Use simple output on Windows to avoid UV_HANDLE_CLOSING crash
-            if (process.platform === 'win32') {
-                console.log(`\n${'═'.repeat(60)}`);
-                console.log(`🤖 ${name}`);
-                console.log(`${'═'.repeat(60)}\n`);
-                console.log(response.content);
-                console.log(`\n${'─'.repeat(60)}`);
-                console.log(`Tokens usados: ${response.tokensUsed || 'N/A'}`);
+            const spinner = logger.spin('Processando...');
 
-                // Force clean exit on Windows to avoid UV_HANDLE crash
-                setTimeout(() => process.exit(0), 100);
-            } else {
+            try {
+                // Executar Hooks de Plugins (Sistema Extensível)
+                await pluginManager.loadAll();
+                await pluginManager.executeHooks('PreToolUse', { content: prompt, agent: name });
+
+                // Usar config do projeto se disponível, senão usar .env
+                const aiProviderConfig = config?.aiProvider || getDefaultAIProvider();
+                const aiService = createAIService(aiProviderConfig);
+                const response = await aiService.generate(prompt, instructions);
+
+                spinner.stop();
+
+                // Premium output box
                 logger.box(response.content, {
                     title: `🤖 ${name}`,
-                    borderColor: 'green',
+                    borderColor: 'cyan',
+                    padding: 1
                 });
-                logger.keyValue('Tokens usados', String(response.tokensUsed || 'N/A'));
-            }
-        } catch (error) {
-            spinner.fail('Erro ao executar agente');
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            logger.error(errorMessage);
 
-            if (errorMessage.includes('401') || errorMessage.includes('API Key inválida')) {
-                logger.newLine();
-                logger.warn('Parece que sua API Key é inválida ou expirou.');
-                logger.info('Você pode atualizar a configuração com:');
-                console.log(chalk.cyan('  pagia config set aiProvider.apiKey "SUA_NOVA_CHAVE"'));
-                console.log(chalk.cyan('  pagia config set aiProvider.type "groq" (ou openai, gemini)'));
-                logger.newLine();
-                logger.info('Dica: O comando "pagia doctor" pode ajudar a verificar suas chaves.');
-            }
+                // Status footer for the response
+                const providerInfo = `${aiProviderConfig.type}/${aiProviderConfig.model}`;
+                console.log(chalk.gray(`  ${'─'.repeat(50)}`));
+                console.log(
+                    chalk.gray(`  ${await getCurrentDir()} | ${chalk.cyan(providerInfo)} | ${chalk.green(response.tokensUsed || 0)} tokens`)
+                );
+                console.log('');
 
-            process.exit(1);
-        }
+                // Reset prompt for next iteration in interactive mode
+                if (isInteractive) {
+                    prompt = null;
+                }
+
+            } catch (error) {
+                spinner.fail('Erro ao executar agente');
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error(errorMessage);
+
+                if (errorMessage.includes('401') || errorMessage.includes('API Key inválida')) {
+                    logger.newLine();
+                    logger.warn('Parece que sua API Key é inválida ou expirou.');
+                    logger.info('Você pode atualizar a configuração com:');
+                    console.log(chalk.cyan('  pagia config set aiProvider.apiKey "SUA_NOVA_CHAVE"'));
+                    if (!isInteractive) process.exit(1);
+                }
+            }
+        } while (isInteractive);
     });
+
+// Helper para pegar diretório atual formatado
+async function getCurrentDir() {
+    return process.cwd().split(/[\\/]/).pop();
+}
 
 // Install BMAD agents subcommand
 agentCommand

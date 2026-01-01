@@ -30,3 +30,8 @@ modules:
     name: Plano de Ação Controlado pela IA
     enabled: true
     config: {}
+
+skills:
+  - code-review
+  - security-audit
+  - performance-optimization

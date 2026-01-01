@@ -193,6 +193,18 @@ await agentRegistry.register(meuAgente, ['custom', 'minha-tag']);
 
 ---
 
+## Exemplo: Example Agent (pronto para uso)
+
+Um agente de exemplo está incluído em `src/agents/specialized/example-agent.ts` que demonstra:
+
+- Como estender `BaseAgent`;
+- Uso de `callAI`, formatação de saída com `createOutput` e extração de `SuggestedAction` com o padrão `[ACTION:type:label:value]`;
+- Como exportá-lo via `src/agents/index.ts` para exposição via CLI e MCP.
+
+Use o teste de exemplo em `test/example-agent.spec.ts` como referência para criar novos testes que mockem `createAIService()`.
+
+---
+
 ## Agent Registry
 
 O Agent Registry permite gerenciar agentes:
