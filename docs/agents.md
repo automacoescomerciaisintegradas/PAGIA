@@ -220,6 +220,41 @@ await agentRegistry.register(exampleAgent, ['examples']);
 
 Sem um arquivo `.md` ou registro no `agentRegistry`, um agente pode existir no código (classe/export) mas não aparecerá na listagem do CLI.
 
+### Padrões de nome e estrutura para arquivos `.md`
+
+- **Nome do arquivo:** prefira letras minúsculas e `-` (ex.: `example-agent.md`).
+- **Cabeçalhos esperados:**
+  - `# <Nome do Agente>` (opcional, mas recomendado)
+  - `## Papel` (usado pelo CLI para mostrar o papel)
+  - `## Descrição`
+  - `## Capacidades` (lista com `- item`)
+  - `## Instruções`
+  - `## Menu` (opcional; linhas como `- `/comando` - descrição`)
+
+Exemplo mínimo de `example-agent.md`:
+
+```markdown
+# Example Agent
+
+## Papel
+Agente de Exemplo
+
+## Descrição
+Breve descrição do agente.
+
+## Capacidades
+- exemplo
+- demo
+
+## Instruções
+Responda com um resumo.
+
+## Menu
+- `/example` - Executa o exemplo
+```
+
+> Observação: a CLI usa regex para extrair `## Papel` e `## Capacidades` (veja `src/commands/agent.ts`), portanto prefira esses cabeçalhos quando possível.
+
 ---
 
 ## Agent Registry
