@@ -1,0 +1,11 @@
+name: sample-prompts
+description: "Reusable prompts used by planner and agents"
+prompts:
+  - id: p1
+    name: "create-plan"
+    description: "Prompt template to create a new plan from a project brief"
+    template: "Given the project brief: {{brief}}, create a staged plan with tasks, owners, and estimates."
+  - id: p2
+    name: "summarize-tasks"
+    description: "Create a short summary for tasks assigned to a person"
+    template: "Summarize the following tasks for {{assignee}}: {{tasks}}"

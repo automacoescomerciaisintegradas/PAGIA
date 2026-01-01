@@ -1,0 +1,50 @@
+id: example-plan-1
+name: Exemplo de Plano de Teste
+description: Plano criado para testar o fluxo de "update todos"
+order: 1
+status: not-started
+topics: []
+tasks:
+  - id: task-1
+    name: Implementar endpoint de health
+    description: Criar endpoint /health para monitoramento
+    module: api
+    status: pending
+    priority: medium
+    dependencies: []
+    checklist: []
+    metadata:
+      source: stage
+      tags:
+        - monitoramento
+    createdAt: 2026-01-01T00:00:00.000Z
+    updatedAt: 2026-01-01T00:00:00.000Z
+  - id: task-2
+    name: Escrever testes unitários para validação
+    description: Adicionar testes unitários para validação de entrada
+    module: api
+    status: in-progress
+    priority: high
+    dependencies:
+      - task-1
+    checklist: []
+    metadata:
+      source: stage
+      tags:
+        - testes
+    createdAt: 2026-01-01T00:10:00.000Z
+    updatedAt: 2026-01-01T00:10:00.000Z
+  - id: task-3
+    name: Resolver bug crítico no auth
+    description: Corrigir bug que bloqueia login
+    module: auth
+    status: pending
+    priority: critical
+    dependencies: []
+    checklist: []
+    metadata:
+      source: stage
+      tags:
+        - segurança
+    createdAt: 2026-01-01T00:20:00.000Z
+    updatedAt: 2026-01-01T14:57:18.350Z

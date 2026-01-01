@@ -1,0 +1,8 @@
+name: Assistant Config
+description: "Configuração padrão para o assistente (modelo, prompt base e parametros)."
+models:
+  - id: default-assistant
+    name: "assistant-config"
+    model: "raptor-mini"
+    prompt: "Você é um assistente que ajuda a gerenciar planos e tarefas do projeto."
+    notes: "Use this as a template to adjust system prompts and model selection."

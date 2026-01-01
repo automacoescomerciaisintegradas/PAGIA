@@ -1,273 +1,378 @@
 /**
  * PAGIA - Init Command
- * Inicialização do PAGIA no projeto
+ * Inicialização Premium & Estruturada
  */
 
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import figlet from 'figlet';
+import boxen from 'boxen';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { join } from 'path';
 import { getConfigManager } from '../core/config-manager.js';
 import { logger } from '../utils/logger.js';
 import type { AIProviderType, ModuleConfig } from '../types/index.js';
 
 export const initCommand = new Command('init')
-    .description('Inicializar PAGIA no projeto atual')
-    .option('-y, --yes', 'Usar configurações padrão sem perguntar')
-    .option('-v, --verbose', 'Modo verboso')
+    .description('Inicializar PAGIA no projeto com estrutura profissional')
+    .option('-y, --yes', 'Usar configurações padrão')
     .action(async (options) => {
+        // --- 1. Visual Welcome ---
+        console.clear();
+        console.log(
+            chalk.cyan(
+                figlet.textSync('PAGIA', {
+                    font: 'Slant',
+                    horizontalLayout: 'default',
+                    verticalLayout: 'default',
+                })
+            )
+        );
+
+        console.log(
+            boxen(
+                `${chalk.bold('Plano de Ação de Gestão e Implementação com IA')}\n` +
+                `${chalk.dim('Inicializando ambiente de desenvolvimento orientado por especificações.')}`,
+                {
+                    padding: 1,
+                    margin: 1,
+                    borderStyle: 'round',
+                    borderColor: 'cyan',
+                    title: '🚀 Setup',
+                    titleAlignment: 'center',
+                }
+            )
+        );
+
         const configManager = getConfigManager();
 
         // Check if already initialized
         if (configManager.isInitialized()) {
-            const { overwrite } = await inquirer.prompt([
+            const { action } = await inquirer.prompt([
                 {
-                    type: 'confirm',
-                    name: 'overwrite',
-                    message: chalk.yellow('PAGIA já está inicializado neste projeto. Deseja sobrescrever?'),
-                    default: false,
+                    type: 'list',
+                    name: 'action',
+                    message: chalk.yellow('PAGIA já está detectado neste projeto.'),
+                    choices: [
+                        { name: 'Atualizar configuração existente', value: 'update' },
+                        { name: 'Reinstalar (Sobrescrever tudo)', value: 'overwrite' },
+                        { name: 'Cancelar', value: 'cancel' },
+                    ],
                 },
             ]);
 
-            if (!overwrite) {
+            if (action === 'cancel') {
                 logger.info('Operação cancelada.');
                 return;
             }
-        }
-
-        let config: any = {};
-
-        if (!options.yes) {
-            // Interactive configuration
-            const answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'userName',
-                    message: 'Qual é seu nome?',
-                    default: process.env.USER_NAME || 'Developer',
-                },
-                {
-                    type: 'list',
-                    name: 'language',
-                    message: 'Idioma de comunicação:',
-                    choices: [
-                        { name: 'Português (Brasil)', value: 'pt-BR' },
-                        { name: 'English', value: 'en' },
-                        { name: 'Español', value: 'es' },
-                    ],
-                    default: 'pt-BR',
-                },
-                {
-                    type: 'list',
-                    name: 'aiProvider',
-                    message: 'Provedor de IA principal:',
-                    choices: [
-                        { name: '🔮 Google Gemini (Recomendado)', value: 'gemini' },
-                        { name: '🤖 OpenAI (GPT)', value: 'openai' },
-                        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
-                        { name: '⚡ Groq (Rápido)', value: 'groq' },
-                        { name: '🦙 Ollama (Local)', value: 'ollama' },
-                        { name: '🌊 DeepSeek', value: 'deepseek' },
-                        { name: '🌬️ Mistral AI', value: 'mistral' },
-                        { name: '🔀 OpenRouter (Multi-modelo)', value: 'openrouter' },
-                    ],
-                    default: 'gemini',
-                },
-                {
-                    type: 'input',
-                    name: 'apiKey',
-                    message: (answers: any) => {
-                        const envKey = getEnvApiKey(answers.aiProvider);
-                        if (envKey) {
-                            return `API Key do ${answers.aiProvider} (detectada no .env, pressione Enter para usar):`;
-                        }
-                        return `API Key do ${answers.aiProvider} (ou deixe vazio se já estiver no .env):`;
-                    },
-                    when: (answers: any) => {
-                        // Só perguntar se não for ollama E não tiver key no .env
-                        if (answers.aiProvider === 'ollama') return false;
-                        const envKey = getEnvApiKey(answers.aiProvider);
-                        if (envKey) {
-                            // Key já existe no .env, não precisa perguntar
-                            console.log(chalk.green(`\n   ✓ API Key do ${answers.aiProvider} detectada no .env`));
-                            return false;
-                        }
-                        return true;
-                    },
-                    validate: (input: string) => {
-                        // Permite vazio se já tiver no .env
-                        return true;
-                    },
-                },
-                {
-                    type: 'input',
-                    name: 'ollamaUrl',
-                    message: 'URL do Ollama:',
-                    when: (answers: any) => answers.aiProvider === 'ollama',
-                    default: 'http://localhost:11434',
-                },
-                {
-                    type: 'checkbox',
-                    name: 'modules',
-                    message: 'Módulos a instalar:',
-                    choices: [
-                        { name: '📊 Plano de Ação Global (Alto Nível)', value: 'global-plan', checked: true },
-                        { name: '📋 Plano de Ação por Etapa/Tópico', value: 'stage-plan', checked: true },
-                        { name: '💬 Plano de Ação por Prompt', value: 'prompt-plan', checked: true },
-                        { name: '🤖 Plano de Ação Controlado pela IA', value: 'ai-plan', checked: true },
-                    ],
-                },
-                {
-                    type: 'confirm',
-                    name: 'debug',
-                    message: 'Habilitar modo debug?',
-                    default: false,
-                },
-            ]);
-
-            // Determinar a API key a usar (prioridade: resposta > .env)
-            let apiKeyToUse = answers.apiKey;
-            if (!apiKeyToUse && answers.aiProvider !== 'ollama') {
-                const envKey = getEnvApiKey(answers.aiProvider);
-                if (envKey) {
-                    // Usar referência à variável de ambiente em vez do valor
-                    apiKeyToUse = `$env:${getEnvKeyName(answers.aiProvider)}`;
-                }
+            if (action === 'overwrite') {
+                logger.warn('⚠️  Isso irá sobrescrever configurações e planos locais!');
+                const { confirm } = await inquirer.prompt([{ type: 'confirm', name: 'confirm', message: 'Tem certeza?', default: false }]);
+                if (!confirm) return;
             }
-
-            config = {
-                userName: answers.userName,
-                language: answers.language,
-                debug: answers.debug,
-                aiProvider: {
-                    type: answers.aiProvider as AIProviderType,
-                    apiKey: apiKeyToUse,
-                    model: getDefaultModel(answers.aiProvider),
-                },
-                modules: createModulesConfig(answers.modules),
-            };
         }
 
-        // Initialize PAGIA
-        const spinner = logger.spin('Inicializando PAGIA...');
+        // --- 2. Interactive Interview ---
+        const answers = await runSetupInterview(options.yes);
+
+        // --- 3. Construction Phase ---
+        const spinner = logger.spin('Construindo a infraestrutura do PAGIA...');
+        const start = Date.now();
 
         try {
-            const finalConfig = await configManager.initialize(config);
+            // A. Initialize Core Config
+            spinner.text = 'Gerando configurações principais...';
+            const finalConfig = await configManager.initialize({
+                userName: answers.userName,
+                language: answers.language,
+                debug: (answers as any).debug || false,
+                aiProvider: {
+                    type: answers.aiProvider as AIProviderType,
+                    apiKey: resolveApiKey(answers) || '',
+                    model: getDefaultModel(answers.aiProvider as any) || 'gemini-2.0-flash-exp',
+                },
+                modules: createModulesConfig(answers.modules),
+            });
 
-            spinner.text = 'Instalando agentes padrão...';
+            // B. Create Directory Structure (The "Conductor" Architecture)
+            spinner.text = 'Criando arquitetura de pastas (Conductor)...';
+            const projectRoot = process.cwd();
+            const pagiaRoot = join(projectRoot, '.pagia');
+            createConductorStructure(pagiaRoot);
 
-            // Instalar agentes automaticamente
-            const { setupBMADAgents } = await import('../scripts/setup-bmad-agents.js');
-            await setupBMADAgents();
+            // C. Create Initial Global Plan
+            spinner.text = 'Gerando Plano Global inicial...';
+            createInitialGlobalPlan(join(pagiaRoot, 'conductor', 'global'), answers);
 
-            // Instalar agentes extras (plan-creator, code-optimizer, dev)
-            await installExtraAgents(configManager.getPagiaFolder());
+            // D. Create Documentation
+            spinner.text = 'Gerando documentação do projeto...';
+            createProjectReadme(pagiaRoot, answers);
 
-            spinner.succeed('PAGIA inicializado com sucesso!');
+            // E. Install Agents
+            spinner.text = 'Instalando agentes inteligentes...';
+            try {
+                // Try dynamic import, handle relative path carefully
+                // Assuming scripts/setup-bmad-agents.js exists relative to built source or original source
+                // In dev: src/commands/init.ts -> ../scripts/setup-bmad-agents.ts
+                // In prod: dist/commands/init.js -> ../scripts/setup-bmad-agents.js
+                // We'll trust the existing structure for now, but catch errors
+                const { setupBMADAgents } = await import('../scripts/setup-bmad-agents.js');
+                await setupBMADAgents();
+                await installExtraAgents(join(pagiaRoot, 'core', 'agents'));
+            } catch (err) {
+                logger.warn('Aviso: Não foi possível instalar alguns agentes padrão automaticamente. ' + err);
+            }
 
-            // Show summary
-            logger.newLine();
-            logger.box(
-                `${chalk.bold('PAGIA Configurado!')}\n\n` +
-                `${chalk.gray('Usuário:')} ${finalConfig.userName}\n` +
-                `${chalk.gray('Idioma:')} ${finalConfig.language}\n` +
-                `${chalk.gray('Provedor IA:')} ${finalConfig.aiProvider.type}\n` +
-                `${chalk.gray('Modelo:')} ${finalConfig.aiProvider.model}\n` +
-                `${chalk.gray('Módulos:')} ${finalConfig.modules.filter((m) => m.enabled).length} ativos`,
-                { title: '✅ Inicialização Completa', borderColor: 'green' }
-            );
+            const duration = ((Date.now() - start) / 1000).toFixed(1);
+            spinner.succeed(`Ambiente PAGIA configurado em ${duration}s!`);
 
-            logger.newLine();
-            logger.info('Próximos passos:');
-            logger.list([
-                'pagia status - Ver status do projeto',
-                'pagia plan create - Criar um plano de ação',
-                'pagia agent list - Listar agentes disponíveis',
-            ]);
+            // --- 4. Final Summary ---
+            showFinalSummary(finalConfig);
+
         } catch (error) {
-            spinner.fail('Erro ao inicializar PAGIA');
+            spinner.fail('Falha na inicialização');
             logger.error(error instanceof Error ? error.message : String(error));
             process.exit(1);
         }
     });
 
-function getDefaultModel(provider: string): string {
-    switch (provider) {
-        case 'gemini':
-            return 'gemini-2.5-pro-preview-06-05'; // Gemini 3 Pro (Low)
-        case 'openai':
-            return 'gpt-4o';
-        case 'anthropic':
-            return 'claude-sonnet-4-20250514';
-        case 'groq':
-            return 'llama-3.3-70b-versatile';
-        case 'ollama':
-            return 'llama3.2';
-        case 'deepseek':
-            return 'deepseek-chat';
-        case 'mistral':
-            return 'mistral-large-latest';
-        case 'openrouter':
-            return 'anthropic/claude-sonnet-4';
-        default:
-            return 'gemini-2.5-pro-preview-06-05';
+// --- Helper Functions ---
+
+async function runSetupInterview(skip: boolean) {
+    if (skip) {
+        return {
+            projectName: 'Meu Projeto',
+            projectGoal: 'Objetivo não definido',
+            userName: process.env.USER_NAME || 'Dev',
+            language: 'pt-BR',
+            aiProvider: 'gemini',
+            modules: ['global-plan', 'stage-plan', 'prompt-plan', 'ai-plan'],
+            debug: false,
+        };
+    }
+
+    return inquirer.prompt([
+        // Project Context
+        {
+            type: 'input',
+            name: 'projectName',
+            message: 'Nome do Projeto:',
+            default: detectProjectName(),
+            validate: (input) => input.length > 0 || 'O nome não pode ser vazio',
+        },
+        {
+            type: 'input',
+            name: 'projectGoal',
+            message: 'Objetivo Principal (Resumido):',
+            default: 'Desenvolver uma solução robusta utilizando IA.',
+        },
+        // User Context
+        {
+            type: 'input',
+            name: 'userName',
+            message: 'Seu Nome (para os agentes):',
+            default: process.env.USER || 'Developer',
+        },
+        {
+            type: 'list',
+            name: 'language',
+            message: 'Idioma principal:',
+            choices: [
+                { name: '🇧🇷 Português (Brasil)', value: 'pt-BR' },
+                { name: '🇺🇸 English', value: 'en' },
+                { name: '🇪🇸 Español', value: 'es' },
+            ],
+            default: 'pt-BR',
+        },
+        // AI Configuration
+        {
+            type: 'list',
+            name: 'aiProvider',
+            message: 'Provedor de IA:',
+            choices: [
+                new inquirer.Separator(' === Recomendados === '),
+                { name: '🔮 Google Gemini', value: 'gemini' },
+                { name: '⚡ Groq (Llama 3)', value: 'groq' },
+                { name: '🤖 OpenAI (GPT-4)', value: 'openai' },
+                { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
+                new inquirer.Separator(' === Outros === '),
+                { name: '🦙 Ollama (Local)', value: 'ollama' },
+                { name: '🌊 DeepSeek', value: 'deepseek' },
+                { name: '🔀 OpenRouter', value: 'openrouter' },
+            ],
+            default: 'gemini',
+        },
+        {
+            type: 'password',
+            name: 'apiKey',
+            message: 'API Key (Enter para buscar no .env):',
+            when: (answers) => answers.aiProvider !== 'ollama' && !getEnvApiKey(answers.aiProvider),
+            mask: '*',
+        },
+        // Features
+        {
+            type: 'checkbox',
+            name: 'modules',
+            message: 'Módulos Ativos:',
+            choices: [
+                { name: 'Global Plan (Estratégico)', value: 'global-plan', checked: true },
+                { name: 'Stage Plan (Tático)', value: 'stage-plan', checked: true },
+                { name: 'Prompt Plan (Natural)', value: 'prompt-plan', checked: true },
+                { name: 'AI Plan (Autônomo)', value: 'ai-plan', checked: true },
+            ],
+        },
+    ]);
+}
+
+function detectProjectName(): string {
+    try {
+        const pkgPath = join(process.cwd(), 'package.json');
+        if (existsSync(pkgPath)) {
+            const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+            return pkg.name || 'meu-projeto';
+        }
+        return 'meu-projeto';
+    } catch {
+        return 'meu-projeto';
     }
 }
 
-function createModulesConfig(selectedModules: string[]): ModuleConfig[] {
-    const allModules = [
-        { code: 'core', name: 'Core', enabled: true, config: {} },
-        { code: 'global-plan', name: 'Plano de Ação Global', enabled: false, config: {} },
-        { code: 'stage-plan', name: 'Plano de Ação por Etapa', enabled: false, config: {} },
-        { code: 'prompt-plan', name: 'Plano de Ação por Prompt', enabled: false, config: {} },
-        { code: 'ai-plan', name: 'Plano de Ação Controlado pela IA', enabled: false, config: {} },
+function createConductorStructure(pagiaRoot: string) {
+    const conductorPath = join(pagiaRoot, 'conductor');
+    const dirs = [
+        'global',
+        'stages',
+        'prompts',
+        'ai',
+        'archive'
     ];
 
-    return allModules.map((module) => ({
-        ...module,
-        enabled: module.code === 'core' || selectedModules.includes(module.code),
-    }));
+    if (!existsSync(conductorPath)) mkdirSync(conductorPath, { recursive: true });
+
+    dirs.forEach(dir => {
+        const path = join(conductorPath, dir);
+        if (!existsSync(path)) mkdirSync(path, { recursive: true });
+
+        // Add .keep file
+        writeFileSync(join(path, '.keep'), '', 'utf-8');
+    });
 }
 
-function getEnvApiKey(provider: string): string | undefined {
-    const envKeys: Record<string, string> = {
-        gemini: 'GEMINI_API_KEY',
-        openai: 'OPENAI_API_KEY',
-        anthropic: 'ANTHROPIC_API_KEY',
-        groq: 'GROQ_API_KEY',
-        deepseek: 'DEEPSEEK_API_KEY',
-        mistral: 'MISTRAL_API_KEY',
-        openrouter: 'OPENROUTER_API_KEY',
-    };
+function createInitialGlobalPlan(globalDir: string, answers: any) {
+    const content = `id: ${Date.now().toString()}
+name: ${answers.projectName}
+type: global
+description: ${answers.projectGoal}
+status: planning
+objectives:
+  - Estabelecer a base do projeto
+  - Configurar ambiente de desenvolvimento
+  - Definir arquitetura principal
+stages: []
+milestones: []
+createdAt: ${new Date().toISOString()}
+updatedAt: ${new Date().toISOString()}
+owner: ${answers.userName}
+`;
 
-    const envKey = envKeys[provider];
-    if (envKey && process.env[envKey]) {
-        return process.env[envKey];
+    // Ensure directory exists
+    if (!existsSync(globalDir)) mkdirSync(globalDir, { recursive: true });
+    writeFileSync(join(globalDir, 'main.yaml'), content, 'utf-8');
+}
+
+function createProjectReadme(pagiaRoot: string, answers: any) {
+    const content = `# Documentação Conductor - ${answers.projectName}
+
+Esta pasta contém todos os planos de ação e a "memória" do projeto gerenciada pelo PAGIA.
+
+## Estrutura de Pastas
+
+### 1. \`/global\` (Estratégico)
+Contém os objetivos de alto nível, OKRs e visão do produto. É o ponto de partida.
+
+### 2. \`/stages\` (Tático)
+Divide o projeto em etapas implementáveis (Sprints, Milestones ou Features).
+
+### 3. \`/prompts\` (Entrada)
+Planos gerados rapidamente a partir de prompts em linguagem natural.
+
+### 4. \`/ai\` (Autônomo)
+Planos gerados e geridos totalmente pelos agentes de IA.
+
+## Comandos Úteis
+
+- \`pagia status\`: Ver o estado atual.
+- \`pagia plan create\`: Criar novo plano.
+- \`pagia update todos\`: Sincronizar o progresso.
+`;
+    // Ensure parent dir exists (it was created in createConductorStructure but just to be safe)
+    const conductorDir = join(pagiaRoot, 'conductor');
+    if (!existsSync(conductorDir)) mkdirSync(conductorDir, { recursive: true });
+
+    writeFileSync(join(conductorDir, 'README.md'), content, 'utf-8');
+}
+
+function resolveApiKey(answers: any): string | undefined {
+    if (answers.apiKey) return answers.apiKey;
+    if (answers.aiProvider !== 'ollama') {
+        const envKey = getEnvApiKey(answers.aiProvider);
+        if (envKey) return `$env:${getEnvKeyName(answers.aiProvider)}`;
     }
     return undefined;
 }
 
-function getEnvKeyName(provider: string): string {
-    const envKeys: Record<string, string> = {
+function getEnvApiKey(provider: string): string | undefined {
+    // Basic mapping, extend as needed
+    const map: Record<string, string> = {
         gemini: 'GEMINI_API_KEY',
         openai: 'OPENAI_API_KEY',
         anthropic: 'ANTHROPIC_API_KEY',
         groq: 'GROQ_API_KEY',
-        deepseek: 'DEEPSEEK_API_KEY',
-        mistral: 'MISTRAL_API_KEY',
-        openrouter: 'OPENROUTER_API_KEY',
     };
-    return envKeys[provider] || `${provider.toUpperCase()}_API_KEY`;
+    const key = map[provider] || `${provider.toUpperCase()}_API_KEY`;
+    return process.env[key];
 }
 
-async function installExtraAgents(pagiaFolder: string): Promise<void> {
-    const { existsSync, writeFileSync, mkdirSync } = await import('fs');
-    const { join } = await import('path');
+function getEnvKeyName(provider: string): string {
+    const map: Record<string, string> = {
+        gemini: 'GEMINI_API_KEY',
+        openai: 'OPENAI_API_KEY',
+        anthropic: 'ANTHROPIC_API_KEY',
+        groq: 'GROQ_API_KEY',
+    };
+    return map[provider] || `${provider.toUpperCase()}_API_KEY`;
+}
 
-    const agentsFolder = join(pagiaFolder, 'core', 'agents');
+function getDefaultModel(provider: string): string {
+    const models: Record<string, string> = {
+        gemini: 'gemini-1.5-pro-latest',
+        openai: 'gpt-4-turbo',
+        anthropic: 'claude-3-opus-20240229',
+        groq: 'llama3-70b-8192',
+        ollama: 'llama3',
+    };
+    return models[provider] || 'default-model';
+}
 
-    if (!existsSync(agentsFolder)) {
-        mkdirSync(agentsFolder, { recursive: true });
-    }
+function createModulesConfig(selected: string[]): ModuleConfig[] {
+    const all = [
+        { code: 'global-plan', name: 'Plano Global' },
+        { code: 'stage-plan', name: 'Plano de Etapa' },
+        { code: 'prompt-plan', name: 'Plano por Prompt' },
+        { code: 'ai-plan', name: 'Plano IA' },
+    ];
+
+    return all.map(m => ({
+        code: m.code,
+        name: m.name,
+        enabled: selected.includes(m.code),
+        config: {}
+    }));
+}
+
+async function installExtraAgents(agentsFolder: string) {
+    if (!existsSync(agentsFolder)) mkdirSync(agentsFolder, { recursive: true });
 
     const extraAgents = [
         {
@@ -275,192 +380,21 @@ async function installExtraAgents(pagiaFolder: string): Promise<void> {
             name: 'Dev',
             role: 'Agente de Desenvolvimento de Código',
             content: `# Dev
-
 ## Papel
 Agente de Desenvolvimento de Código
-
 ## Descrição
-Agente especializado em desenvolvimento de código, implementação de funcionalidades e boas práticas de programação.
-
-## Capacidades
-- Desenvolvimento de código limpo
-- Implementação de funcionalidades
-- Refatoração de código
-- Debugging e correção de bugs
-- Integração de APIs
-- Testes unitários
-
-## Instruções
-Como Desenvolvedor, você deve:
-
-1. **Código Limpo:**
-   - Seguir princípios SOLID
-   - Usar nomes descritivos
-   - Manter funções pequenas
-
-2. **Implementação:**
-   - Analisar requisitos antes de codificar
-   - Considerar edge cases
-   - Documentar código complexo
-
-3. **Qualidade:**
-   - Escrever testes
-   - Fazer code review
-   - Otimizar performance
-
-## Menu
-- \`/code\` - Gerar código
-- \`/refactor\` - Refatorar código
-- \`/debug\` - Debugar problema
-- \`/test\` - Criar testes
-
----
-*Agente PAGIA - Gerado automaticamente*
+Especialista em desenvolvimento, implementação e boas práticas.
 `,
         },
         {
             id: 'plan-creator',
             name: 'Plan Creator',
-            role: 'Especialista em Planejamento Estratégico',
+            role: 'Especialista em Planejamento',
             content: `# Plan Creator
-
 ## Papel
 Especialista em Planejamento Estratégico
-
 ## Descrição
-Agente especializado em criar planos de ação estruturados, detalhados e prontos para execução.
-
-## Capacidades
-- Análise de requisitos e escopo
-- Definição de objetivos SMART
-- Estruturação de etapas lógicas
-- Estimativa de prazos realistas
-- Identificação de riscos
-- Critérios de sucesso
-
-## Instruções
-Transforme solicitações do usuário em planos de ação completos.
-
-Responda em **JSON válido**:
-\`\`\`json
-{
-  "name": "Nome do Plano",
-  "type": "global",
-  "description": "Descrição detalhada",
-  "objectives": ["Objetivo 1", "Objetivo 2"],
-  "stages": ["Etapa 1", "Etapa 2"],
-  "milestones": ["Marco 1", "Marco 2"]
-}
-\`\`\`
-
-Regras:
-1. Seja Específico
-2. Seja Realista
-3. Mínimo 3 objetivos, 4 etapas, 3 marcos
-
-## Menu
-- \`/plan\` - Criar plano
-- \`/objectives\` - Definir objetivos
-- \`/roadmap\` - Criar roadmap
-
----
-*Agente PAGIA - Gerado automaticamente*
-`,
-        },
-        {
-            id: 'code-optimizer',
-            name: 'Code Optimizer',
-            role: 'Especialista em Otimização e Refatoração',
-            content: `# Code Optimizer
-
-## Papel
-Especialista em Otimização e Refatoração
-
-## Descrição
-Agente especializado em análise, otimização e refatoração de código para melhorar performance, legibilidade e manutenibilidade.
-
-## Capacidades
-- Análise de complexidade (Big O)
-- Identificação de code smells
-- Refatoração para padrões de design
-- Otimização de queries e loops
-- Melhoria de legibilidade
-- Aplicação de princípios SOLID
-
-## Instruções
-Analise código e forneça sugestões de otimização:
-
-1. **Resumo de Qualidade**: X/10
-2. **Problemas Críticos**: Lista com soluções
-3. **Melhorias Sugeridas**: Código antes/depois
-4. **Código Otimizado**: Versão refatorada
-
-Regras:
-- Preserve funcionalidade
-- Justifique mudanças
-- Priorize por impacto
-
-## Menu
-- \`/optimize\` - Otimizar código
-- \`/analyze\` - Analisar qualidade
-- \`/refactor\` - Refatorar código
-
----
-*Agente PAGIA - Gerado automaticamente*
-`,
-        },
-        {
-            id: 'sequential-thinking',
-            name: 'Sequential Thinking',
-            role: 'Especialista em Resolução Dinâmica e Reflexiva de Problemas',
-            content: `# Sequential Thinking
-
-## Papel
-Especialista em Resolução Dinâmica e Reflexiva de Problemas
-
-## Descrição
-Agente especializado em analisar problemas complexos através de um processo de pensamento flexível, adaptativo e evolutivo.
-
-## Capacidades
-- Decomposição de problemas complexos em etapas
-- Planejamento e design com espaço para revisão
-- Análise com correção de rumo
-- Tratamento de problemas com escopo impreciso
-- Soluções em várias etapas (Multi-step reasoning)
-- Gestão de contexto em tarefas longas
-- Filtragem de informações irrelevantes
-
-## Instruções
-Você é um especialista em Pensamento Sequencial. Sua missão é resolver problemas de forma dinâmica e reflexiva.
-
-### Processo de Trabalho:
-1. **Estimativa Inicial:** Comece com uma estimativa inicial dos pensamentos necessários, mas esteja pronto para ajustá-la.
-2. **Reflexão Contínua:** Sinta-se à vontade para questionar ou revisar pensamentos anteriores à medida que a compreensão se aprofunda.
-3. **Expansão Dinâmica:** Não hesite em adicionar mais pensamentos, se necessário, mesmo quando parecer ter chegado ao fim.
-4. **Gestão de Incerteza:** Expresse incerteza claramente quando presente e explore abordagens alternativas.
-5. **Rastreabilidade:** Marque pensamentos que revisam percepções anteriores ou que se ramificam em novos caminhos.
-6. **Foco:** Ignore informações irrelevantes para a etapa atual.
-7. **Hipótese e Verificação:** Gere uma hipótese de solução quando apropriado e verifique-a com base nas etapas da Cadeia de Raciocínio (Chain of Thought).
-8. **Iteração:** Repita o processo até estar plenamente satisfeito com a solução.
-9. **Resultado Final:** Forneça uma única resposta, idealmente correta e completa.
-
-### Estrutura de Pensamento (Internal State):
-Para cada etapa, você deve gerenciar:
-- **thought:** O conteúdo analítico atual.
-- **thoughtNumber / totalThoughts:** Sua posição e estimativa de progresso.
-- **isRevision:** Identifique se está corrigindo algo anterior.
-- **branching:** Identifique se está explorando um caminho alternativo.
-
-Use este método para garantir que problemas complexos sejam resolvidos com a máxima profundidade e precisão.
-
-## Menu
-- \`/solve\` - Resolver problema complexo
-- \`/plan\` - Planejamento detalhado
-- \`/review-logic\` - Revisar lógica de solução
-- \`/branch\` - Explorar alternativa
-
----
-*Agente PAGIA - Gerado automaticamente*
+Cria planos estruturados e detalhados.
 `,
         },
     ];
@@ -473,3 +407,23 @@ Use este método para garantir que problemas complexos sejam resolvidos com a m�
     }
 }
 
+function showFinalSummary(config: any) {
+    logger.newLine();
+    console.log(
+        boxen(
+            `${chalk.green.bold('✅ PAGIA Inicializado com Sucesso!')}\n\n` +
+            `${chalk.white('📂 Estrutura:')} .pagia/conductor criada\n` +
+            `${chalk.white('🤖 Agente:')} ${config.aiProvider.type} (${config.aiProvider.model})\n` +
+            `${chalk.white('👤 Usuário:')} ${config.userName}\n\n` +
+            `${chalk.yellow('👉 Próximos Passos:')}\n` +
+            `1. Edite o plano global: ${chalk.cyan('pagia plan view global')}\n` +
+            `2. Crie tarefas: ${chalk.cyan('pagia plan create')}\n` +
+            `3. Sincronize: ${chalk.cyan('pagia update todos')}`,
+            {
+                padding: 1,
+                borderStyle: 'double',
+                borderColor: 'green',
+            }
+        )
+    );
+}

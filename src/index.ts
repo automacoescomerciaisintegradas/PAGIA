@@ -10,12 +10,13 @@
 import { Command } from 'commander';
 import { config } from 'dotenv';
 import { logger } from './utils/logger.js';
+import { getConfigManager } from './core/config-manager.js';
 
 // Commands
 import { initCommand } from './commands/init.js';
 import { installCommand } from './commands/install.js';
 import { statusCommand } from './commands/status.js';
-import { planCommand } from './commands/plan.js';
+import { planCommand, installTemplateCLI } from './commands/plan.js';
 import { agentCommand } from './commands/agent.js';
 import { updateCommand } from './commands/update.js';
 import { configCommand } from './commands/config.js';
@@ -115,6 +116,36 @@ program.addCommand(conductorCommand);
 program.addCommand(doctorCommand);
 program.addCommand(pluginCommand);
 program.addCommand(skillCommand);
+
+// registro "soft" do comando plan install-template (melhor-esforço, não intrusivo)
+// Ajuste conforme o framework de CLI (commander / cac / yargs) usado no projeto.
+try {
+    // exemplo para commander (se 'program' existir no escopo)
+    // @ts-ignore
+    if (typeof program !== 'undefined' && program.command) {
+        // @ts-ignore
+        program
+            .command('plan install-template <name>')
+            .description('Instala um template de plano (.pagia/plans/*) no diretório atual ou alvo')
+            .option('-t, --type <type>', 'tipo do template (stages|global|prompts|ai)', 'stages')
+            .option('--target <dir>', 'diretório alvo', process.cwd())
+            .option('--dry-run', 'não escreve arquivo', false)
+            .option('--force', 'sobrescrever sem perguntar', false)
+            .option('--open', 'abrir o arquivo gerado no editor', false)
+            .action((name: string, opts: any) => {
+                const configManager = getConfigManager();
+                const pagiaDir = configManager.isInitialized() ? configManager.getPagiaFolder() : process.cwd();
+                const targetDir = opts.target || process.cwd();
+
+                installTemplateCLI(pagiaDir, name, targetDir, opts).catch((err: any) => {
+                    console.error('Erro ao instalar template:', err.message || err);
+                    process.exitCode = 1;
+                });
+            });
+    }
+} catch (e) {
+    // ignore — registro não crítico
+}
 
 // Parse arguments
 program.parse(process.argv);

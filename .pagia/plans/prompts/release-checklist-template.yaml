@@ -1,0 +1,6 @@
+name: Release Checklist
+description: "Checklist para preparar e executar releases automáticas."
+prompts:
+  - id: checklist
+    name: "release-checklist"
+    template: "Liste os passos para preparar uma release do projeto, incluindo verificação de changelog, testes e deploy."

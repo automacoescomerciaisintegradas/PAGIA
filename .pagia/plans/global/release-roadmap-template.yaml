@@ -1,0 +1,15 @@
+name: Release Roadmap
+description: "Roadmap para lançamento de versão - objetivos, marcos e checkpoints."
+tasks:
+  - id: plan-release
+    title: "Planejar release"
+    status: pending
+    assignee: product-owner
+  - id: rc-tests
+    title: "Executar testes de release candidate"
+    status: pending
+    assignee: qa
+  - id: docs
+    title: "Atualizar documentação de release"
+    status: pending
+    assignee: docs

@@ -1,0 +1,13 @@
+name: sample-global
+description: "Global roadmap and high-level initiatives for the project"
+tasks:
+  - id: g1
+    title: "Define project vision"
+    status: pending
+    assignee: product-owner
+    notes: "Kickoff alignment and product vision workshop"
+  - id: g2
+    title: "Set up CI/CD"
+    status: in-progress
+    assignee: devops
+    dependencies: [g1]

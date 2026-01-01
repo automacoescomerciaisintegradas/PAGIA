@@ -1,0 +1,21 @@
+name: Onboarding
+description: "Plantilla para onboarding de novos contribuidores. Contém etapas e tarefas iniciais."
+stages:
+  - id: week-1
+    title: "Primeira semana"
+    tasks:
+      - id: setup-env
+        name: "Configurar ambiente local"
+        status: pending
+        assignee: new-dev
+      - id: read-docs
+        name: "Ler documentação do repositório"
+        status: pending
+        assignee: new-dev
+  - id: week-2
+    title: "Primeira entrega"
+    tasks:
+      - id: small-pr
+        name: "Enviar PR com pequena correção"
+        status: pending
+        assignee: new-dev

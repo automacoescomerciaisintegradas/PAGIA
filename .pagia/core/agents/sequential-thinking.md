@@ -39,10 +39,10 @@ Para cada etapa, você deve gerenciar:
 Use este método para garantir que problemas complexos sejam resolvidos com a máxima profundidade e precisão.
 
 ## Menu
-- \`/solve\` - Resolver problema complexo
-- \`/plan\` - Planejamento detalhado
-- \`/review-logic\` - Revisar lógica de solução
-- \`/branch\` - Explorar alternativa
+- `/solve` - Resolver problema complexo
+- `/plan` - Planejamento detalhado
+- `/review-logic` - Revisar lógica de solução
+- `/branch` - Explorar alternativa
 
 ---
-*Agente PAGIA - Gerado automaticamente*
+*Agente BMAD Method - Gerado pelo PAGIA*

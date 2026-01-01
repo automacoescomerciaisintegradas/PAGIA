@@ -110,6 +110,7 @@ updateCommand
                 }
 
                 if (apply) {
+                    applyUpdates(pagiaFolder, analysis.updates);
                     logger.success(`${analysis.updates.length} atualização(es) aplicada(s)`);
                 }
             } else if (options.dryRun && analysis.updates.length > 0) {
@@ -175,7 +176,7 @@ updateCommand
         const spinner = logger.spin(`Atualizando plano "${name}"...`);
 
         try {
-            const content = parseYaml(readFileSync(planFile, 'utf-8'));
+            const content = parseYaml(readFileSync(planFile, 'utf-8')) as any;
             content.updatedAt = new Date().toISOString();
 
             writeFileSync(planFile, stringifyYaml(content, { indent: 2 }), 'utf-8');
@@ -226,41 +227,49 @@ interface TaskAnalysis {
 
 function collectAllTasks(pagiaFolder: string): Task[] {
     const tasks: Task[] = [];
-    const plansFolder = join(pagiaFolder, 'plans');
-
-    if (!existsSync(plansFolder)) return tasks;
-
+    // Support both new conductor structure and legacy plans folder
+    const baseFolders = [join(pagiaFolder, 'conductor'), join(pagiaFolder, 'plans')];
     const planTypes = ['global', 'stages', 'prompts', 'ai'];
 
-    for (const type of planTypes) {
-        const typeFolder = join(plansFolder, type);
-        if (!existsSync(typeFolder)) continue;
+    const normalizeTask = (t: any): Task => {
+        if (!t.name && t.title) t.name = t.title;
+        // Ensure minimal fields
+        return t as Task;
+    };
 
-        const files = readdirSync(typeFolder).filter((f) => f.endsWith('.yaml'));
+    for (const plansFolder of baseFolders) {
+        if (!existsSync(plansFolder)) continue;
 
-        for (const file of files) {
-            try {
-                const content = parseYaml(readFileSync(join(typeFolder, file), 'utf-8'));
+        for (const type of planTypes) {
+            const typeFolder = join(plansFolder, type);
+            if (!existsSync(typeFolder)) continue;
 
-                // Extract tasks from different plan structures
-                if (content.tasks) {
-                    tasks.push(...content.tasks);
-                }
-                if (content.generatedTasks) {
-                    tasks.push(...content.generatedTasks);
-                }
-                if (content.automatedTasks) {
-                    tasks.push(...content.automatedTasks);
-                }
-                if (content.stages) {
-                    for (const stage of content.stages) {
-                        if (stage.tasks) {
-                            tasks.push(...stage.tasks);
+            const files = readdirSync(typeFolder).filter((f) => f.endsWith('.yaml'));
+
+            for (const file of files) {
+                try {
+                    const content = parseYaml(readFileSync(join(typeFolder, file), 'utf-8')) as any;
+
+                    // Extract tasks from different plan structures
+                    if (content.tasks) {
+                        tasks.push(...content.tasks.map(normalizeTask));
+                    }
+                    if (content.generatedTasks) {
+                        tasks.push(...content.generatedTasks.map(normalizeTask));
+                    }
+                    if (content.automatedTasks) {
+                        tasks.push(...content.automatedTasks.map(normalizeTask));
+                    }
+                    if (content.stages) {
+                        for (const stage of content.stages) {
+                            if (stage.tasks) {
+                                tasks.push(...stage.tasks.map(normalizeTask));
+                            }
                         }
                     }
+                } catch {
+                    // Skip invalid files
                 }
-            } catch {
-                // Skip invalid files
             }
         }
     }
@@ -331,6 +340,7 @@ function applyUpdates(
     logger.debug(`Aplicando ${updates.length} atualizações...`);
 
     const planTypes = ['global', 'stages', 'prompts', 'ai'];
+    const baseFolders = [join(pagiaFolder, 'conductor'), join(pagiaFolder, 'plans')];
 
     // Map updates by taskId for quick lookup
     const updatesByTask: Record<string, Array<any>> = {};
@@ -339,64 +349,68 @@ function applyUpdates(
         updatesByTask[u.taskId].push(u);
     }
 
-    for (const type of planTypes) {
-        const folder = join(pagiaFolder, 'plans', type);
-        if (!existsSync(folder)) continue;
+    for (const plansFolder of baseFolders) {
+        if (!existsSync(plansFolder)) continue;
 
-        const files = readdirSync(folder).filter((f) => f.endsWith('.yaml'));
+        for (const type of planTypes) {
+            const folder = join(plansFolder, type);
+            if (!existsSync(folder)) continue;
 
-        for (const file of files) {
-            const filePath = join(folder, file);
-            let contentRaw: any;
+            const files = readdirSync(folder).filter((f) => f.endsWith('.yaml'));
 
-            try {
-                contentRaw = parseYaml(readFileSync(filePath, 'utf-8')) || {};
-            } catch (err) {
-                logger.warn(`Falha ao ler/parsing ${filePath}: ${String(err)}`);
-                continue;
-            }
+            for (const file of files) {
+                const filePath = join(folder, file);
+                let contentRaw: any;
 
-            let fileChanged = false;
+                try {
+                    contentRaw = parseYaml(readFileSync(filePath, 'utf-8')) || {};
+                } catch (err) {
+                    logger.warn(`Falha ao ler/parsing ${filePath}: ${String(err)}`);
+                    continue;
+                }
 
-            // Helper to attempt update in an array of tasks
-            const tryUpdateTasks = (arrPath: string, arr: any[] | undefined) => {
-                if (!arr || !Array.isArray(arr)) return;
+                let fileChanged = false;
 
-                for (const t of arr) {
-                    const taskId = t.id;
-                    if (taskId && updatesByTask[taskId]) {
-                        for (const u of updatesByTask[taskId]) {
-                            // Apply update
-                            (t as any)[u.field] = u.newValue;
-                            t.updatedAt = new Date().toISOString();
-                            fileChanged = true;
-                            logger.debug(`Atualizado ${u.field} de tarefa ${taskId} em ${filePath}`);
+                // Helper to attempt update in an array of tasks
+                const tryUpdateTasks = (arrPath: string, arr: any[] | undefined) => {
+                    if (!arr || !Array.isArray(arr)) return;
+
+                    for (const t of arr) {
+                        const taskId = t.id;
+                        if (taskId && updatesByTask[taskId]) {
+                            for (const u of updatesByTask[taskId]) {
+                                // Apply update
+                                (t as any)[u.field] = u.newValue;
+                                t.updatedAt = new Date().toISOString();
+                                fileChanged = true;
+                                logger.debug(`Atualizado ${u.field} de tarefa ${taskId} em ${filePath}`);
+                            }
+                            // Remove applied updates for this task
+                            delete updatesByTask[taskId];
                         }
-                        // Remove applied updates for this task
-                        delete updatesByTask[taskId];
+                    }
+                };
+
+                // Top-level tasks
+                tryUpdateTasks('tasks', contentRaw.tasks);
+                // generatedTasks & automatedTasks
+                tryUpdateTasks('generatedTasks', contentRaw.generatedTasks);
+                tryUpdateTasks('automatedTasks', contentRaw.automatedTasks);
+
+                // Stages -> tasks
+                if (contentRaw.stages && Array.isArray(contentRaw.stages)) {
+                    for (const stage of contentRaw.stages) {
+                        tryUpdateTasks('stage.tasks', stage.tasks);
                     }
                 }
-            };
 
-            // Top-level tasks
-            tryUpdateTasks('tasks', contentRaw.tasks);
-            // generatedTasks & automatedTasks
-            tryUpdateTasks('generatedTasks', contentRaw.generatedTasks);
-            tryUpdateTasks('automatedTasks', contentRaw.automatedTasks);
-
-            // Stages -> tasks
-            if (contentRaw.stages && Array.isArray(contentRaw.stages)) {
-                for (const stage of contentRaw.stages) {
-                    tryUpdateTasks('stage.tasks', stage.tasks);
-                }
-            }
-
-            if (fileChanged) {
-                try {
-                    writeFileSync(filePath, stringifyYaml(contentRaw, { indent: 2 }), 'utf-8');
-                    logger.info(`Arquivo atualizado: ${filePath}`);
-                } catch (err) {
-                    logger.error(`Erro ao escrever ${filePath}: ${String(err)}`);
+                if (fileChanged) {
+                    try {
+                        writeFileSync(filePath, stringifyYaml(contentRaw, { indent: 2 }), 'utf-8');
+                        logger.info(`Arquivo atualizado: ${filePath}`);
+                    } catch (err) {
+                        logger.error(`Erro ao escrever ${filePath}: ${String(err)}`);
+                    }
                 }
             }
         }
@@ -410,19 +424,27 @@ function applyUpdates(
 }
 
 function findPlanFile(pagiaFolder: string, name: string): string | null {
+    const baseFolders = [join(pagiaFolder, 'conductor'), join(pagiaFolder, 'plans')];
     const planTypes = ['global', 'stages', 'prompts', 'ai'];
     const sanitized = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-    for (const type of planTypes) {
-        const possiblePaths = [
-            join(pagiaFolder, 'plans', type, `${sanitized}.yaml`),
-            join(pagiaFolder, 'plans', type, `${name}.yaml`),
-        ];
+    for (const plansFolder of baseFolders) {
+        if (!existsSync(plansFolder)) continue;
 
-        for (const path of possiblePaths) {
-            if (existsSync(path)) return path;
+        for (const type of planTypes) {
+            const possiblePaths = [
+                join(plansFolder, type, `${sanitized}.yaml`),
+                join(plansFolder, type, `${name}.yaml`),
+            ];
+
+            for (const path of possiblePaths) {
+                if (existsSync(path)) return path;
+            }
         }
     }
 
     return null;
 }
+
+// Export helpers for testing
+export { applyUpdates, collectAllTasks, analyzeTasksSync, findPlanFile };

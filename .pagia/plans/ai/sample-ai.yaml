@@ -1,0 +1,14 @@
+name: sample-ai
+description: "AI-specific plan artifacts and model notes"
+models:
+  - id: m1
+    name: "assistant-config"
+    description: "Default assistant model & prompt configuration"
+    model: "raptor-mini"
+    prompt: "You are an assistant that helps maintain project plans."
+tasks:
+  - id: a1
+    title: "Validate RAG chunks"
+    status: pending
+    assignee: data-engineer
+    notes: "Review chunking strategy and overlap"

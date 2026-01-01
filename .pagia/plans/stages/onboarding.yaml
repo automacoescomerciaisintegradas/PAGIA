@@ -1,0 +1,22 @@
+name: onboarding
+description: "Stage-based plan for onboarding new contributors"
+stages:
+  - id: stage-1
+    title: "First week"
+    tasks:
+      - id: t1
+        title: "Read contributor docs"
+        status: completed
+        assignee: new-dev
+      - id: t2
+        title: "Set up local environment"
+        status: in-progress
+        assignee: new-dev
+  - id: stage-2
+    title: "First month"
+    tasks:
+      - id: t3
+        title: "Ship first PR"
+        status: pending
+        assignee: mentor
+        dependencies: [t2]
