@@ -9,6 +9,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
+import { pathToFileURL } from 'url';
 
 export interface PluginCommand {
     name: string;
@@ -310,7 +311,7 @@ MIT
         for (const { plugin, hook, path } of hooks) {
             try {
                 if (existsSync(path)) {
-                    const hookModule = await import(path);
+                    const hookModule = await import(pathToFileURL(path).href);
                     if (typeof hookModule.default === 'function') {
                         await hookModule.default(context);
                     } else if (typeof hookModule.handler === 'function') {
