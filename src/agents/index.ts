@@ -26,8 +26,12 @@ export { QAAgent, qaAgent } from './specialized/qa-agent.js';
 export { WorkflowBuildingMasterAgent, workflowBuildingMasterAgent } from './specialized/workflow-building-master-agent.js';
 export { AgentBuildingExpertAgent, agentBuildingExpertAgent } from './specialized/agent-building-expert-agent.js';
 export { ModuleCreationMasterAgent, moduleCreationMasterAgent } from './specialized/module-creation-master-agent.js';
+export { ExampleAgent, exampleAgent } from './specialized/example-agent.js';
 
 // Integração com Inngest AgentKit
 export { InngestAdapter, inngestAdapter } from './inngest-adapter.js';
 export { PAGIANetwork, pagiaNetwork } from './inngest-network.js';
+
+export { ProductBriefAgent, productBriefAgent } from './specialized/product-brief-agent.js';
+
 

@@ -1,11 +1,12 @@
 /**
  * PAGIA - Logger Utility
- * Sistema de logging com cores e níveis
+ * Sistema de logging com cores e níveis premium
  */
 
 import chalk from 'chalk';
 import ora, { Ora } from 'ora';
 import boxen from 'boxen';
+import figlet from 'figlet';
 
 export type LogLevel = 'debug' | 'info' | 'success' | 'warn' | 'error';
 
@@ -82,29 +83,15 @@ class Logger {
      * Start a spinner with a message
      */
     spin(message: string): Ora {
-        const isWindows = process.platform === 'win32';
-
         if (this.currentSpinner) {
             try { this.currentSpinner.stop(); } catch { /* ignore */ }
         }
 
-        if (isWindows) {
-            // Use simple console output on Windows to avoid UV_HANDLE_CLOSING crash
-            console.log(chalk.cyan('⠋ ') + message);
-            // Return a mock ora object
-            this.currentSpinner = {
-                stop: () => { },
-                succeed: (msg?: string) => console.log(chalk.green('✓ ') + (msg || message)),
-                fail: (msg?: string) => console.log(chalk.red('✖ ') + (msg || message)),
-                text: message,
-            } as unknown as Ora;
-        } else {
-            this.currentSpinner = ora({
-                text: message,
-                color: 'cyan',
-                spinner: 'dots',
-            }).start();
-        }
+        this.currentSpinner = ora({
+            text: message,
+            color: 'cyan',
+            spinner: 'dots',
+        }).start();
 
         return this.currentSpinner;
     }
@@ -140,14 +127,14 @@ class Logger {
     }
 
     /**
-     * Display a boxed message
+     * Display a boxed message with premium styling
      */
-    box(message: string, options?: { title?: string; borderColor?: string }): void {
+    box(message: string, options?: { title?: string; borderColor?: string; padding?: number }): void {
         if (this.silentMode) return;
 
         console.log(
             boxen(message, {
-                padding: 1,
+                padding: options?.padding ?? 1,
                 margin: 1,
                 borderStyle: 'round',
                 borderColor: (options?.borderColor as any) || 'cyan',
@@ -155,6 +142,66 @@ class Logger {
                 titleAlignment: 'center',
             })
         );
+    }
+
+    /**
+     * Display a welcome banner like Qoder/iFlow
+     */
+    welcome(version: string, cwd: string): void {
+        const welcomeMsg = `Bem-vindo ao PAGIA CLI! ${chalk.cyan(version)}\n\nDiretório: ${chalk.gray(cwd)}`;
+
+        console.log(
+            boxen(welcomeMsg, {
+                padding: 1,
+                margin: { top: 1, bottom: 0, left: 1, right: 1 },
+                borderStyle: 'round',
+                borderColor: 'cyan',
+                width: 60
+            })
+        );
+    }
+
+    /**
+     * Display a version update notice
+     */
+    updateNotice(current: string, latest: string, features: string[]): void {
+        console.log(`\n ✨ ${chalk.yellow('Nova versão')} ${chalk.green(latest)} ${chalk.yellow('disponível!')} ${chalk.gray(`(instalada: ${current})`)}`);
+        features.forEach(f => console.log(chalk.gray(`  - ${f}`)));
+        console.log(chalk.cyan(`\n Execute \`pagia update cli\` para atualizar para a versão mais recente.\n`));
+    }
+
+    /**
+     * Display the big ASCII banner
+     */
+    banner(): void {
+        const text = figlet.textSync('PAGIA', {
+            font: 'ANSI Shadow',
+            horizontalLayout: 'fitted',
+        });
+
+        // Split text into lines to apply gradient colors manually
+        const lines = text.split('\n');
+        const colors = [chalk.cyan, chalk.cyanBright, chalk.blue, chalk.blueBright, chalk.magenta];
+
+        console.log('');
+        lines.forEach((line, i) => {
+            const color = colors[i % colors.length];
+            console.log(color(line));
+        });
+
+        console.log(chalk.gray('  Desenvolvido por Automações Comerciais Integradas! ⚙️ - contato@automacoescomerciais.com.br'));
+        console.log(chalk.gray('  © 2025 Automações Comerciais Integradas. Todos os direitos reservados.\n'));
+    }
+
+    /**
+     * Display getting started tips
+     */
+    tips(tips: string[]): void {
+        console.log(chalk.bold('Dicas para começar:'));
+        tips.forEach((tip, i) => {
+            console.log(`${chalk.cyan(i + 1)}. ${tip}`);
+        });
+        console.log('');
     }
 
     /**
@@ -222,3 +269,4 @@ class Logger {
 const logger = new Logger();
 
 export { Logger, logger };
+
