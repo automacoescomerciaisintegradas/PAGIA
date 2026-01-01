@@ -203,6 +203,23 @@ Um agente de exemplo está incluído em `src/agents/specialized/example-agent.ts
 
 Use o teste de exemplo em `test/example-agent.spec.ts` como referência para criar novos testes que mockem `createAIService()`.
 
+### Observação: como fazer o agente aparecer em `pagia agent list`
+
+Para que um agente seja listado por `pagia agent list` ele precisa estar disponível de uma das duas formas:
+
+- Ter um arquivo de agente (`.md`) em um dos locais monitorados pelo comando (agentes embutidos em `.pagia/core/agents` dentro do pacote, ou agentes locais em `.pagia/core/agents` do projeto ou `modules/<module>/agents`).
+- Ou ser registrado programaticamente no `agentRegistry` em tempo de execução. Exemplo:
+
+```typescript
+import { agentRegistry } from 'pagia/agents';
+import { exampleAgent } from './specialized/example-agent';
+
+// Registrar o agente com tags
+await agentRegistry.register(exampleAgent, ['examples']);
+```
+
+Sem um arquivo `.md` ou registro no `agentRegistry`, um agente pode existir no código (classe/export) mas não aparecerá na listagem do CLI.
+
 ---
 
 ## Agent Registry
