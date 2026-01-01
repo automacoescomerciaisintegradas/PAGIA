@@ -23,6 +23,7 @@ updateCommand
     .description('Sincronizar todas as tarefas do projeto')
     .option('--ai', 'Usar IA para análise e sugestões')
     .option('--dry-run', 'Simular atualização sem aplicar mudanças')
+    .option('-y, --yes', 'Confirmar automaticamente as atualizações')
     .action(async (options) => {
         const configManager = getConfigManager();
 
@@ -91,17 +92,24 @@ updateCommand
 
             // Apply changes if not dry run
             if (!options.dryRun && analysis.updates.length > 0) {
-                const { confirm } = await inquirer.prompt([
-                    {
-                        type: 'confirm',
-                        name: 'confirm',
-                        message: `Aplicar ${analysis.updates.length} atualizações?`,
-                        default: true,
-                    },
-                ]);
+                let apply = false;
 
-                if (confirm) {
-                    applyUpdates(pagiaFolder, analysis.updates);
+                if (options.yes) {
+                    apply = true;
+                } else {
+                    const { confirm } = await inquirer.prompt([
+                        {
+                            type: 'confirm',
+                            name: 'confirm',
+                            message: `Aplicar ${analysis.updates.length} atualizações?`,
+                            default: true,
+                        },
+                    ]);
+
+                    apply = confirm;
+                }
+
+                if (apply) {
                     logger.success(`${analysis.updates.length} atualização(es) aplicada(s)`);
                 }
             } else if (options.dryRun && analysis.updates.length > 0) {
@@ -320,8 +328,85 @@ function applyUpdates(
         description: string;
     }>
 ): void {
-    // TODO: Implement actual update application to plan files
     logger.debug(`Aplicando ${updates.length} atualizações...`);
+
+    const planTypes = ['global', 'stages', 'prompts', 'ai'];
+
+    // Map updates by taskId for quick lookup
+    const updatesByTask: Record<string, Array<any>> = {};
+    for (const u of updates) {
+        updatesByTask[u.taskId] = updatesByTask[u.taskId] || [];
+        updatesByTask[u.taskId].push(u);
+    }
+
+    for (const type of planTypes) {
+        const folder = join(pagiaFolder, 'plans', type);
+        if (!existsSync(folder)) continue;
+
+        const files = readdirSync(folder).filter((f) => f.endsWith('.yaml'));
+
+        for (const file of files) {
+            const filePath = join(folder, file);
+            let contentRaw: any;
+
+            try {
+                contentRaw = parseYaml(readFileSync(filePath, 'utf-8')) || {};
+            } catch (err) {
+                logger.warn(`Falha ao ler/parsing ${filePath}: ${String(err)}`);
+                continue;
+            }
+
+            let fileChanged = false;
+
+            // Helper to attempt update in an array of tasks
+            const tryUpdateTasks = (arrPath: string, arr: any[] | undefined) => {
+                if (!arr || !Array.isArray(arr)) return;
+
+                for (const t of arr) {
+                    const taskId = t.id;
+                    if (taskId && updatesByTask[taskId]) {
+                        for (const u of updatesByTask[taskId]) {
+                            // Apply update
+                            (t as any)[u.field] = u.newValue;
+                            t.updatedAt = new Date().toISOString();
+                            fileChanged = true;
+                            logger.debug(`Atualizado ${u.field} de tarefa ${taskId} em ${filePath}`);
+                        }
+                        // Remove applied updates for this task
+                        delete updatesByTask[taskId];
+                    }
+                }
+            };
+
+            // Top-level tasks
+            tryUpdateTasks('tasks', contentRaw.tasks);
+            // generatedTasks & automatedTasks
+            tryUpdateTasks('generatedTasks', contentRaw.generatedTasks);
+            tryUpdateTasks('automatedTasks', contentRaw.automatedTasks);
+
+            // Stages -> tasks
+            if (contentRaw.stages && Array.isArray(contentRaw.stages)) {
+                for (const stage of contentRaw.stages) {
+                    tryUpdateTasks('stage.tasks', stage.tasks);
+                }
+            }
+
+            if (fileChanged) {
+                try {
+                    writeFileSync(filePath, stringifyYaml(contentRaw, { indent: 2 }), 'utf-8');
+                    logger.info(`Arquivo atualizado: ${filePath}`);
+                } catch (err) {
+                    logger.error(`Erro ao escrever ${filePath}: ${String(err)}`);
+                }
+            }
+        }
+    }
+
+    // If any updates remain unapplied, warn
+    const remaining = Object.keys(updatesByTask);
+    if (remaining.length > 0) {
+        logger.warn(`Algumas atualizações não foram aplicadas (tarefas não encontradas): ${remaining.join(', ')}`);
+    }
 }
 
 function findPlanFile(pagiaFolder: string, name: string): string | null {
