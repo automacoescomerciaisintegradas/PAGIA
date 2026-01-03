@@ -1,0 +1,3 @@
+# VibeSDK Config
+name = "cleudo-code"
+main = "src/index.ts"

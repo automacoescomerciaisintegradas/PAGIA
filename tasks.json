@@ -1,0 +1,124 @@
+{
+    "tasks": [
+        {
+            "id": "T-001",
+            "name": "Configuração do boilerplate VibeSDK (Cloudflare Workers + D1/Vectorize).",
+            "spec": "003-vibesdk",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-002",
+            "name": "Interface de \"Vibe Programming\" via Dashboard Maestro.",
+            "spec": "003-vibesdk",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-003",
+            "name": "Deploy automatizado para Cloudflare Pages/Workers.",
+            "spec": "003-vibesdk",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-004",
+            "name": "Integração com modelos de linguagem via Cloudflare AI.",
+            "spec": "003-vibesdk",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-005",
+            "name": "Criar estrutura de pastas do projeto (`src/backend`, `src/frontend`)",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-006",
+            "name": "Configurar `package.json` com scripts de desenvolvimento",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-007",
+            "name": "Inicializar servidor Express básico",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-008",
+            "name": "Configurar conexão com provedor de IA no `.env`",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-009",
+            "name": "Testar execução de um agente básico (ex: `analyst`)",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-010",
+            "name": "Criar `index.html` e `styles.css` base",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-011",
+            "name": "Implementar carregamento de componentes dinâmicos",
+            "spec": "001",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-012",
+            "name": "Interface dedicada \"PRD Studio\" no Dashboard.",
+            "spec": "004-prd-generator",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-013",
+            "name": "Fluxo interativo: O usuário fornece a idéia, a IA faz perguntas de clarificação e gera o PRD final.",
+            "spec": "004-prd-generator",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-014",
+            "name": "Exportação automática para Markdown na pasta `.pagia/docs/prds/`.",
+            "spec": "004-prd-generator",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        },
+        {
+            "id": "T-015",
+            "name": "Barra de progresso visual com a mensagem: \"Nossa IA está elaborando um Documento de Requisitos de Produto abrangente para você\".",
+            "spec": "004-prd-generator",
+            "status": "pending",
+            "priority": "medium",
+            "agent": "Developer"
+        }
+    ]
+}

@@ -9,5 +9,6 @@ tasks:
   - id: g2
     title: "Set up CI/CD"
     status: in-progress
+    assignedAgent: Architect
     assignee: devops
     dependencies: [g1]

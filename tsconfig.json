@@ -3,9 +3,11 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./apps/backend/src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,13 +18,28 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@core/*": ["src/core/*"],
-      "@modules/*": ["src/modules/*"],
-      "@agents/*": ["src/agents/*"],
-      "@utils/*": ["src/utils/*"]
+      "@/*": [
+        "apps/backend/src/*"
+      ],
+      "@core/*": [
+        "apps/backend/src/core/*"
+      ],
+      "@modules/*": [
+        "apps/backend/src/modules/*"
+      ],
+      "@agents/*": [
+        "apps/backend/src/agents/*"
+      ],
+      "@utils/*": [
+        "apps/backend/src/utils/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "apps/backend/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

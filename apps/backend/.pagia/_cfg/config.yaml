@@ -1,0 +1,28 @@
+projectRoot: C:\projetos2025\PAGIA\apps\backend
+pagiaFolder: .pagia
+language: pt-br
+userName: developer
+debug: false
+aiProvider:
+  type: ollama
+  apiKey: ""
+  model: llama3
+  temperature: 0.7
+  maxTokens: 8192
+modules:
+  - code: global-plan
+    name: Plano Global
+    enabled: true
+    config: {}
+  - code: stage-plan
+    name: Plano de Etapa
+    enabled: true
+    config: {}
+  - code: prompt-plan
+    name: Plano por Prompt
+    enabled: true
+    config: {}
+  - code: ai-plan
+    name: Plano IA
+    enabled: true
+    config: {}

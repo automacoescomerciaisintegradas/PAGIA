@@ -5,8 +5,8 @@ userName: Developer
 debug: false
 aiProvider:
   type: gemini
-  apiKey: $env:GEMINI_API_KEY
-  model: gemini-1.5-pro-latest
+  apiKey: AIzaSyAtaP5kbY3I24FQuFvvsKfXH5lJzhfv_Vc
+  model: gemini-2.0-flash
   temperature: 0.7
   maxTokens: 8192
 modules:

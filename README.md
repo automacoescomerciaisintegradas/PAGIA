@@ -14,17 +14,80 @@
 
 ## 📋 Índice
 
+- [Interface](#-interface)
+- [Funcionalidades](#-funcionalidades)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Requisitos](#-requisitos)
+- [Uso da CLI](#-uso-da-cli)
 - [Instalação](#-instalação)
-- [Início Rápido](#-início-rápido)
 - [Comandos](#-comandos)
-- [Arquitetura](#-arquitetura)
-- [Módulos](#-módulos)
-- [Agentes](#-agentes)
-- [Base de Conhecimento](#-base-de-conhecimento)
-- [MCP Server](#-mcp-server)
-- [TDD Workflow](#-tdd-workflow)
-- [Web Bundler](#-web-bundler)
 - [Configuração](#-configuração)
+
+---
+
+## 🖥️ Interface
+
+### Quadro Kanban
+Gerenciamento visual de tarefas do planejamento até a conclusão. Crie tarefas e monitore o progresso do agente em tempo real.
+
+### Terminal de Agente
+Terminais alimentados por IA com injeção de contexto de tarefa em um clique. Gere múltiplos agentes para trabalho paralelo.
+
+### Roteiro (Roadmap)
+Planejamento de recursos assistido por IA, análise de concorrentes e segmentação de público.
+
+---
+
+## ✨ Funcionalidades Adicionais
+
+- **Insights**: Interface de chat para explorar sua base de código.
+- **Ideação**: Descubra melhorias, problemas de desempenho e vulnerabilidades.
+- **Changelog**: Gere notas de lançamento a partir de tarefas concluídas.
+
+---
+
+## 🏗️ Estrutura do Projeto
+
+```text
+PAGIA/
+├── apps/
+│   ├── backend/     # Agentes Python, especificações, pipeline de QA
+│   └── frontend/    # Aplicação desktop Electron
+├── guides/          # Documentação adicional
+├── tests/           # Conjunto de testes
+└── scripts/         # Utilitários de build
+```
+
+---
+
+## 📋 Requisitos
+
+- **Assinatura Claude Pro/Max**: [Adquira aqui](https://claude.ai/pro)
+- **Claude Code CLI**: `npm install -g @anthropic-ai/claude-code`
+- **Repositório Git**: Seu projeto deve ser inicializado como um repositório git.
+- **Python 3.12+**: Necessário para o backend e a Camada de Memória.
+
+---
+
+## 💻 Uso da CLI
+
+Para operação headless, integração CI/CD ou fluxos de trabalho apenas com terminais:
+
+```bash
+cd apps/backend
+
+# Criar uma especificação interativamente
+python spec_runner.py --interactive
+
+# Executar build autônomo
+python run.py --spec 001
+
+# Revisar e mesclar
+python run.py --spec 001 --review
+python run.py --spec 001 --merge
+```
+
+Veja `guides/CLI-USAGE.md` para documentação completa da CLI.
 
 ---
 
@@ -430,11 +493,18 @@ pagia bundle validate ./bundle.md
 
 ## 📄 Licença
 
-MIT © 2025 Automações Comerciais Integradas
+**AGPL-3.0** - Licença Pública Geral GNU Affero v3.0
+
+O PAGIA é gratuito. Se você modificar e distribuir, ou executá-lo como um serviço, seu código também deve ser open source sob AGPL-3.0.
+
+Licenciamento comercial disponível para casos de uso de código fechado.
 
 ---
 
 ## 🤝 Contribuição
+
+Antes de contribuir, você deve assinar nosso [Contrato de Licença de Contribuinte (CLA)](CLA.md). Para assinar, basta comentar em seu Pull Request:
+`Eu li o documento CLA e por meio deste assino o CLA`
 
 1. Fork o projeto
 2. Crie sua branch (`git checkout -b feature/AmazingFeature`)

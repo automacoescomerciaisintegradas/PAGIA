@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAGIA Maestro | Premium Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        /* ======================================================
+           DESIGN TOKENS — DARK MODE (PREMIUM CYBERPUNK)
+           ====================================================== */
+        :root {
+            --primary: #00f2ff;
+            --primary-hover: #00c8d4;
+            --primary-soft: rgba(0, 242, 255, 0.1);
+            --secondary: #6366f1;
+
+            --sidebar-width: 260px;
+            --header-height: 64px;
+
+            --bg-main: #030712;
+            --bg-gradient: radial-gradient(circle at top right, #1e1b4b 0%, #030712 40%, #020617 100%);
+            --bg-surface: #0f172a;
+            --bg-glass: rgba(15, 23, 42, 0.7);
+
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --terminal-bg: #030712;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 0 15px rgba(0, 242, 255, 0.15);
+        }
+
+        /* ======================================================
+           BASE & UTILITIES
+           ====================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-main);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        /* Scrollbar */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(16, 185, 129, 0.6);
+        }
+
+        /* ======================================================
+           LAYOUT: SIDEBAR & PAGE WRAPPERS
+           ====================================================== */
+        aside#sidebar-wrapper {
+            position: fixed;
+            z-index: 1000;
+            width: var(--sidebar-width);
+            min-height: 100vh;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        main#page-content-wrapper {
+            flex: 1;
+            padding-top: var(--header-height);
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin 0.3s ease;
+        }
+
+        .top-bar.navbar-custom {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            z-index: 999;
+        }
+
+        /* Responsive Sidebar Toggle */
+        #mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        /* ======================================================
+           COMPONENTS: NAV, CARDS, TERMINAL
+           ====================================================== */
+        .brand {
+            padding: 0.5rem 0;
+            margin-bottom: 2rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .nav-item {
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 0.4rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            padding-left: 1.5rem;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
+            color: var(--primary);
+            font-weight: 700;
+            border-left: 3px solid var(--primary);
+            border-color: rgba(0, 242, 255, 0.1);
+        }
+
+        .card,
+        .kb-card,
+        .vibe-monitor-card,
+        .prd-studio-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+
+        .card:hover,
+        .kb-card:hover,
+        .prd-studio-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* ======================================================
+           KANBAN & CONTENT
+           ====================================================== */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            padding: 2rem;
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .view-content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .kb-column {
+            background: rgba(243, 244, 246, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 400px;
+        }
+
+        .kb-header {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+
+        .tag-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tag-med {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .tag-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* ======================================================
+           TERMINALS (FOOTER)
+           ====================================================== */
+        footer {
+            background: var(--terminal-bg);
+            border-top: 1px solid var(--border);
+            width: 100%;
+            height: auto;
+            max-height: 40vh;
+            display: flex;
+            flex-direction: column;
+            margin-top: auto;
+        }
+
+        .terminal-header-bar {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-header-bar h2 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .terminal-stack {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .terminal-instance {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+            max-height: 300px;
+        }
+
+        .t-instance-header {
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .t-instance-title {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono';
+            color: var(--text-dim);
+        }
+
+        .t-instance-close {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .t-instance-close:hover {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        .terminal-viewport {
+            flex: 1;
+            padding: 0.8rem;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #d1d5db;
+        }
+
+        .btn-agent-add {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-family: 'Inter';
+            transition: 0.2s;
+        }
+
+        .btn-agent-add:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* Vibe Monitor UI - Light Version */
+        .vibe-monitor-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .vibe-wave-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
+            background-size: 200% 100%;
+            animation: vibeShift 4s linear infinite;
+            opacity: 0.1;
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0 0v46.29c47.79 22.2 103.59 32.17 158 28 70.36-5.37 136.33-33.31 206.8-37.5 73.84-4.36 147.54 16.88 218.2 35.26 69.27 18 138.3 24.88 209.4 13.08 36.15-6 69.85-17.84 104.45-29.34C989.49 25 1113-14.29 1200 52.47V0z" fill="black"/></svg>');
+        }
+
+        @keyframes vibeShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        .vibe-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        .vibe-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .vibe-stat-item {
+            text-align: center;
+        }
+
+        .vibe-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: block;
+        }
+
+        .vibe-stat-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* PRD Studio Card - Inspired by PRD Fast */
+        .prd-studio-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: 0.3s ease;
+        }
+
+        .prd-studio-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .prd-studio-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            background: var(--primary);
+            color: #000;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .prd-feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .prd-feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .prd-feature-list i {
+            width: 14px;
+            color: #10b981;
+        }
+
+        /* PRD Generator Styles */
+        .prd-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            z-index: 10000;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .prd-loader {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(0, 242, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        .prd-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+        }
+
+        .terminal-container {
+            flex: 1;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #d1d5db;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            /* Mantemos o interior escuro para vibe de código */
+        }
+
+        .terminal-content-area {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .terminal-prompt {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #050505;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+        }
+
+        .terminal-prompt span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .terminal-prompt input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .t-viewport {
+            display: none;
+        }
+
+        .t-viewport.active {
+            display: block;
+        }
+
+        .t-line {
+            margin-bottom: 0.25rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .t-success {
+            color: var(--primary);
+        }
+
+        .t-info {
+            color: var(--secondary);
+        }
+
+        .t-cmd {
+            color: #facc15;
+        }
+
+        .t-error {
+            color: var(--accent);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-spin {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="brand">
+            <i data-lucide="zap"></i>
+            PAGIA MAESTRO
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="switchView('kanban', this)">
+                <i data-lucide="layout-dashboard"></i>
+                Dashboard
+            </div>
+            <div class="nav-item" onclick="switchView('kanban', this)">
+                <i data-lucide="columns"></i>
+                Quadro Kanban
+            </div>
+            <div class="nav-item" onclick="switchView('preview', this)">
+                <i data-lucide="eye"></i>
+                Visualização Real
+            </div>
+            <div class="nav-item">
+                <i data-lucide="git-branch"></i>
+                Roteiro (Roadmap)
+            </div>
+            <div class="nav-item">
+                <i data-lucide="settings"></i>
+                Configurações
+            </div>
+        </nav>
+
+        <div class="maestro-chat">
+            <div class="chat-header">
+                <span>Maestro Core</span>
+                <span class="t-success">● online</span>
+            </div>
+            <div id="chat-logs">
+                <div class="msg agent animate">Olá! Sou o seu Agente Maestro. Como posso evoluir o projeto hoje?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="maestro-input" placeholder="Comando rápido...">
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <div class="top-bar">
+            <h1 id="view-title">Gestão de Fluxo</h1>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button onclick="runRealBuild()"
+                    style="background: var(--secondary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-family: 'Inter'; display: flex; align-items: center; gap: 0.5rem; transition: 0.3s; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);"
+                    onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <i data-lucide="play"></i> Disparar Automação Real
+                </button>
+                <div class="pill-tabs">
+                    <div class="pill active" onclick="switchView('kanban', this)">Visão de Tarefas</div>
+                    <div class="pill" onclick="switchView('preview', this)">Resultado em Tempo Real</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="view-content-area" id="kanban-board">
+            <div class="kanban-board">
+                <div class="kb-column">
+                    <div class="kb-header">
+                        <span class="kb-title"><i data-lucide="list-todo"></i> Backlog de Tarefas</span>
+                        <span class="kb-count">3</span>
+                    </div>
+                    <!-- Card 1 -->
+                    <div class="kb-card">
+                        <span class="tag tag-high">Prioridade Alta</span>
+                        <div class="kb-card-title">Setup do Sistema Backend</div>
+                        <p class="kb-card-desc">Configuração do servidor Express e estrutura de pastas modular.</p>
+                        <div class="agent-avatar"><i data-lucide="bot"></i> Agente: Architect</div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="kb-card">
+                        <span class="tag tag-med">Prioridade Média</span>
+                        <div class="kb-card-title">Integração com Ollama</div>
+                        <p class="kb-card-desc">Implementar fallback dinâmico entre modelos locais e nuvem.</p>
+                        <div class="agent-avatar"><i data-lucide="bot"></i> Agente: Developer</div>
+                    </div>
+                </div>
+
+                <div class="kb-column">
+                    <div class="kb-header">
+                        <span class="kb-title"><i data-lucide="loader-2" class="animate-spin"></i> Em Execução</span>
+                        <span class="kb-count">1</span>
+                    </div>
+                    <!-- AI Vibe Monitor Area -->
+                    <div id="vibe-monitor-area">
+                        <div class="vibe-monitor-card">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3 style="margin: 0; font-size: 1rem; display: flex; align-items: center;">
+                                    <i data-lucide="activity"
+                                        style="width: 18px; margin-right: 0.5rem; color: var(--primary);"></i>
+                                    AI Vibe Monitor <span
+                                        style="font-size: 0.7rem; color: var(--text-dim); margin-left: 0.5rem;">(Cloudflare
+                                        VibeSDK)</span>
+                                </h3>
+                                <div style="font-size: 0.7rem;">
+                                    <span class="vibe-status-dot"></span> LIVE
+                                </div>
+                            </div>
+
+                            <div class="vibe-stat-grid">
+                                <div class="vibe-stat-item">
+                                    <span class="vibe-stat-value">98%</span>
+                                    <span class="vibe-stat-label">Sentiment Sync</span>
+                                </div>
+                                <div class="vibe-stat-item">
+                                    <span class="vibe-stat-value">42ms</span>
+                                    <span class="vibe-stat-label">Latência "Vibe"</span>
+                                </div>
+                                <div class="vibe-stat-item">
+                                    <span class="vibe-stat-value">Ativo</span>
+                                    <span class="vibe-stat-label">Boilerplate Status</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-dim);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                    <span>Project Energy</span>
+                                    <span>High Resonance</span>
+                                </div>
+                                <div
+                                    style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                                    <div
+                                        style="width: 85%; height: 100%; background: var(--primary); border-radius: 2px; box-shadow: 0 0 10px var(--primary);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="vibe-wave-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- PRD Studio Card - PRD Fast Adapter -->
+                    <div class="prd-studio-card">
+                        <div class="prd-studio-badge">AI Powered</div>
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="file-text" style="color: var(--secondary);"></i>
+                            PRD Studio <span style="font-size: 0.7rem; font-weight: 400; color: var(--text-dim);">(Fast
+                                Generator)</span>
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem;">
+                            Transforme suas ideias brutas em documentos de requisitos profissionais em segundos.
+                        </p>
+
+                        <ul class="prd-feature-list">
+                            <li><i data-lucide="check" style="color: var(--primary);"></i> Visão de Produto & Objetivos
+                            </li>
+                            <li><i data-lucide="check" style="color: var(--primary);"></i> Personas & User Stories</li>
+                            <li><i data-lucide="check" style="color: var(--primary);"></i> Critérios de Aceite Técnicos
+                            </li>
+                        </ul>
+
+                        <button onclick="startPRDGeneration()" class="btn-primary"
+                            style="width: 100%; padding: 0.8rem; border-radius: 12px; margin-top: 0.5rem; background: linear-gradient(135deg, var(--secondary), var(--primary)); font-weight: 700; font-family: 'Inter';">
+                            <i data-lucide="sparkles"></i> Gerar Novo PRD
+                        </button>
+
+                        <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                            <h4
+                                style="font-size: 0.75rem; color: var(--text); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                                <i data-lucide="history" style="width: 14px;"></i> Histórico Recente
+                            </h4>
+                            <div id="prd-history-list"
+                                style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <span
+                                    style="font-size: 0.7rem; color: var(--text-dim); text-align: center; padding: 1rem;">Nenhum
+                                    documento gerado ainda.</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.8rem; text-align: center;">
+                            <span style="font-size: 0.65rem; color: var(--text-dim);">Recomendado para: Product Owners &
+                                Architects</span>
+                        </div>
+                    </div>
+
+                    <div class="kanban-grid" id="kanban-board-grid">
+                        <div class="kb-card" style="border-color: var(--primary);">
+                            <span class="tag"
+                                style="background: rgba(0, 242, 255, 0.2); color: var(--primary);">Ativo</span>
+                            <div class="kb-card-title">Interface Premium UI</div>
+                            <p class="kb-card-desc">Construção do dashboard moderno com Glassmorphism e Kanban.</p>
+                            <div class="agent-avatar"><i data-lucide="sparkles"></i> Agente: UI/UX Expert</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kb-column">
+                    <div class="kb-header">
+                        <span class="kb-title"><i data-lucide="check-circle-2"></i> Concluído</span>
+                        <span class="kb-count">12</span>
+                    </div>
+                    <div class="kb-card">
+                        <div class="kb-card-title">Criação do CLA</div>
+                        <p class="kb-card-desc">Contrato de contribuidor traduzido e revisado (AGPL-3.0).</p>
+                        <div class="agent-avatar" style="color: var(--secondary);"><i data-lucide="check"></i> Validado
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview View -->
+            <section id="preview-view" class="preview-view" style="flex: 1; display: none; padding: 1rem;">
+                <div class="card" style="height: 100%; width: 100%;">
+                    <iframe id="preview-frame"
+                        style="width: 100%; height: 100%; border: none; border-radius: 12px;"></iframe>
+                </div>
+            </section>
+
+            <footer>
+                <div class="terminal-header-bar">
+                    <h2><i data-lucide="bot"></i> Agentes Ativos no Conductor</h2>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select id="agent-selector" class="btn-agent-add" style="padding: 0.2rem 0.4rem; height: 25px;">
+                            <option value="analyst">Analyst</option>
+                            <option value="architect">Architect</option>
+                            <option value="dev">Developer</option>
+                            <option value="qa">QA Engineer</option>
+                            <option value="product-owner">Product Owner</option>
+                            <option value="pm">Project Manager</option>
+                            <option value="scrum-master">Scrum Master</option>
+                            <option value="sequential-thinking">Sequential Thinking</option>
+                            <option value="frontend-master" selected>Frontend Master</option>
+                            <option value="code-optimizer">Code Optimizer</option>
+                            <option value="module-creation-master">Module Master</option>
+                            <option value="workflow-building-master">Workflow Master</option>
+                            <option value="agent-building-expert">Agent Builder</option>
+                            <option value="plan-creator">Plan Creator</option>
+                            <option value="ba">Business Analyst</option>
+                        </select>
+                        <button onclick="addSelectedAgent()" class="btn-agent-add"
+                            style="background: var(--primary); color: #000; font-weight: bold;">+ Iniciar
+                            Agente</button>
+                    </div>
+                </div>
+
+                <div class="terminal-stack" id="terminal-stack">
+                    <!-- Terminal Core sempre presente -->
+                    <div class="terminal-instance" id="term-core">
+                        <div class="t-instance-header">
+                            <span class="t-instance-title">Maestro Core</span>
+                            <i data-lucide="shield" style="width:12px; height:12px; opacity:0.5;"></i>
+                        </div>
+                        <div class="terminal-viewport" id="t-viewport-core">
+                            <div class="t-line t-success">[SYS] Maestro Core inicializado.</div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-instance" id="term-ui/ux">
+                        <div class="t-instance-header">
+                            <span class="t-instance-title">Agent: UI/UX</span>
+                            <i data-lucide="x" class="t-instance-close" onclick="closeTerminal('ui/ux')"></i>
+                        </div>
+                        <div class="terminal-viewport" id="t-viewport-ui/ux">
+                            <div class="t-line t-info">[AGENT] UI/UX Expert monitorando mudanças...</div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-instance" id="term-backend">
+                        <div class="t-instance-header">
+                            <span class="t-instance-title">Agent: Backend</span>
+                            <i data-lucide="x" class="t-instance-close" onclick="closeTerminal('backend')"></i>
+                        </div>
+                        <div class="terminal-viewport" id="t-viewport-backend">
+                            <div class="t-line t-info">[AGENT] Backend Master online.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-prompt-bar"
+                    style="background: #000; padding: 0.5rem 1rem; border-top: 1px solid #27272a;">
+                    <div class="terminal-prompt">
+                        <span>></span>
+                        <input type="text" id="term-input" placeholder="Execute comando no terminal ativo..."
+                            autocomplete="off">
+                    </div>
+                </div>
+            </footer>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Inicializar ícones
+        lucide.createIcons();
+
+        const socket = io();
+        const chatLogs = document.getElementById('chat-logs');
+        const maestroInput = document.getElementById('maestro-input');
+        const previewFrame = document.getElementById('preview-frame');
+
+        // Toggle Sidebar para Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-wrapper');
+            sidebar.classList.toggle('show');
+        }
+
+        // Sistema de Troca de Abas/Views
+        function switchView(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.pill').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+
+            const titleEl = document.getElementById('view-title');
+            if (viewId === 'kanban') {
+                titleEl.textContent = 'Gestão de Fluxo';
+                document.getElementById('kanban-board').style.display = 'grid';
+                document.getElementById('preview-view').style.display = 'none';
+            } else {
+                titleEl.textContent = 'Preview Real-Time';
+                document.getElementById('kanban-board').style.display = 'none';
+                document.getElementById('preview-view').style.display = 'block';
+            }
+
+            // Fechar sidebar no mobile após clique
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        let activeTerminalId = 'core';
+
+        function focusTerminal(id) {
+            activeTerminalId = id;
+            document.querySelectorAll('.terminal-instance').forEach(inst => {
+                inst.style.borderColor = 'rgba(255,255,255,0.05)';
+            });
+            const activeInst = document.getElementById(`term-${id}`) || document.getElementById(`term-core`);
+            if (activeInst) activeInst.style.borderColor = 'var(--primary)';
+        }
+
+        // Delegar click para focar terminal
+        document.getElementById('terminal-stack').addEventListener('click', (e) => {
+            const inst = e.target.closest('.terminal-instance');
+            if (inst) {
+                const id = inst.id.replace('term-', '');
+                focusTerminal(id);
+                document.getElementById('term-input').focus();
+            }
+        });
+
+        function addSelectedAgent() {
+            const selector = document.getElementById('agent-selector');
+            const agentName = selector.value;
+            const iconMap = {
+                'analyst': 'search', 'architect': 'layout', 'dev': 'code', 'qa': 'shield-check',
+                'sequential-thinking': 'brain', 'product-owner': 'user-check', 'pm': 'clipboard-list',
+                'scrum-master': 'users', 'code-optimizer': 'zap', 'module-creation-master': 'package',
+                'frontend-master': 'palette'
+            };
+            addAgentTerminal(agentName, iconMap[agentName] || 'bot');
+        }
+
+        function addAgentTerminal(agentName, icon, skipRun = false) {
+            const id = agentName.toLowerCase().replace(' ', '-');
+            if (document.getElementById(`term-${id}`)) {
+                focusTerminal(id);
+                return;
+            }
+
+            const stack = document.getElementById('terminal-stack');
+            if (!stack) return;
+
+            const newInst = document.createElement('div');
+            newInst.className = 'terminal-instance';
+            newInst.id = `term-${id}`;
+            newInst.innerHTML = `
+                <div class="t-instance-header">
+                    <span class="t-instance-title"><i data-lucide="${icon}" style="width:12px;height:12px;"></i> Agente: ${agentName}</span>
+                    <i data-lucide="x" class="t-instance-close" onclick="closeTerminal('${id}')"></i>
+                </div>
+                <div class="terminal-viewport" id="t-viewport-${id}">
+                    <div class="t-line t-info">[SYS] Inicializando workspace do Agente ${agentName}...</div>
+                </div>
+            `;
+            stack.appendChild(newInst);
+            lucide.createIcons();
+            focusTerminal(id);
+            newInst.scrollIntoView({ behavior: 'smooth' });
+
+            if (!skipRun) {
+                socket.emit('run-real-command', {
+                    command: 'pagia',
+                    args: ['agent', 'run', agentName],
+                    terminalId: id,
+                    cwd: 'c:\\projetos2025\\PAGIA\\apps\\backend'
+                });
+            }
+        }
+
+        function addTerminal() {
+            addAgentTerminal('Custom', 'terminal');
+        }
+
+        function closeTerminal(id) {
+            if (id === 'core') return;
+            socket.emit('kill-process', id);
+            const inst = document.getElementById(`term-${id}`);
+            if (inst) inst.remove();
+            if (activeTerminalId === id) focusTerminal('core');
+        }
+
+        let lastContent = '';
+
+        socket.on('state-update', (state) => {
+            console.log('Update de estado:', state);
+            if (state.pages && state.pages[0]) {
+                lastContent = state.pages[0].content;
+                updateIframe(lastContent);
+            }
+            if (state.tasks) {
+                renderKanban(state.tasks);
+            }
+        });
+
+        function renderKanban(tasks) {
+            const columns = {
+                'pending': document.querySelector('#kanban-area .kb-column:nth-child(1)'),
+                'in-progress': document.querySelector('#kanban-area .kb-column:nth-child(2)'),
+                'completed': document.querySelector('#kanban-area .kb-column:nth-child(3)')
+            };
+
+            // Limpar cards antigos (mantendo o header)
+            Object.values(columns).forEach(col => {
+                const cards = col.querySelectorAll('.kb-card');
+                cards.forEach(c => c.remove());
+            });
+
+            tasks.forEach(task => {
+                const col = columns[task.status] || columns['pending'];
+                const card = document.createElement('div');
+                card.className = 'kb-card animate';
+                if (task.status === 'in-progress') card.style.borderColor = 'var(--primary)';
+
+                card.innerHTML = `
+                    <span class="tag tag-${task.priority === 'high' ? 'high' : 'med'}">${task.priority.toUpperCase()}</span>
+                    <div class="kb-card-title">${task.name}</div>
+                    <p class="kb-card-desc">Relacionado à Spec ${task.spec}</p>
+                    <div class="agent-avatar"><i data-lucide="bot"></i> Agente: ${task.agent}</div>
+                `;
+                col.appendChild(card);
+            });
+            lucide.createIcons();
+
+            // Atualizar contadores
+            document.querySelectorAll('.kb-column').forEach(col => {
+                const count = col.querySelectorAll('.kb-card').length;
+                col.querySelector('.kb-count').innerText = count;
+            });
+        }
+
+        socket.on('agent-thinking', (thinking) => {
+            addChatMessage(thinking, 'agent');
+            addTerminalLine('core', `[PENSAMENTO] ${thinking}`, 't-info');
+        });
+
+        // RECONHECENDO LOGS REAIS
+        socket.on('terminal-log', ({ terminalId, text, type }) => {
+            const className = type === 'error' ? 't-error' : (type === 'success' ? 't-success' : '');
+            addTerminalLine(terminalId, text, className);
+        });
+
+        function runRealBuild() {
+            addTerminalLine('agent2', 'Iniciando automação customizada...', 't-info');
+            focusTerminal('agent2');
+
+            socket.emit('run-real-command', {
+                command: 'python',
+                args: ['run.py', '--spec', '001'],
+                terminalId: 'agent2',
+                cwd: 'c:\\projetos2025\\PAGIA\\apps\\backend'
+            });
+        }
+
+        function updateIframe(content) {
+            const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            doc.open();
+            doc.write(content);
+            doc.close();
+        }
+
+        function addChatMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = `msg ${role} animate`;
+            div.innerText = text;
+            chatLogs.appendChild(div);
+            chatLogs.scrollTop = chatLogs.scrollHeight;
+        }
+
+        const termInput = document.getElementById('term-input');
+        const runningTerminals = new Set();
+
+        socket.on('terminal-log', ({ terminalId, text, type }) => {
+            const className = type === 'error' ? 't-error' : (type === 'success' ? 't-success' : '');
+            addTerminalLine(terminalId, text, className);
+            if (text.includes('[FIM]')) {
+                runningTerminals.delete(terminalId);
+                console.log(`Processo em ${terminalId} finalizado.`);
+            }
+        });
+
+        termInput.onkeydown = (e) => { // Mudado para onkeydown para capturar Enter melhor
+            if (e.key === 'Enter') {
+                e.preventDefault(); // IMPORTANTE: Impede comportamento padrão
+                const cmdText = termInput.value.trim();
+                if (!cmdText) return;
+
+                if (runningTerminals.has(activeTerminalId)) {
+                    socket.emit('terminal-input', {
+                        terminalId: activeTerminalId,
+                        text: cmdText
+                    });
+                    addTerminalLine(activeTerminalId, cmdText, '');
+                } else {
+                    const parts = cmdText.split(' ');
+                    const command = parts[0];
+                    const args = parts.slice(1);
+
+                    addTerminalLine(activeTerminalId, `> ${cmdText}`, 't-cmd');
+                    runningTerminals.add(activeTerminalId);
+
+                    socket.emit('run-real-command', {
+                        command: command,
+                        args: args,
+                        terminalId: activeTerminalId,
+                        cwd: 'c:\\projetos2025\\PAGIA'
+                    });
+                }
+
+                termInput.value = '';
+            }
+        };
+
+        function addTerminalLine(terminalId, text, className = '') {
+            const viewport = document.getElementById(`t-viewport-${terminalId}`);
+            if (!viewport) return;
+
+            const div = document.createElement('div');
+            div.className = `t-line ${className}`;
+            div.innerText = (text.startsWith('>') ? '' : `[${new Date().toLocaleTimeString()}] `) + text;
+            viewport.appendChild(div);
+
+            // Scroll do viewport individual do terminal
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+
+        maestroInput.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const msg = maestroInput.value;
+                if (!msg) return;
+
+                addChatMessage(msg, 'user');
+                addTerminalLine('core', `USUÁRIO: ${msg}`, 't-cmd');
+
+                socket.emit('chat-message', msg);
+                maestroInput.value = '';
+            }
+        };
+
+        // Simulação de inicialização
+        setTimeout(() => {
+            addTerminalLine('core', 'Verificando integridade dos novos diretórios...', 't-info');
+            addTerminalLine('core', 'Interface Premium e Múltiplos Terminais prontos.', 't-success');
+        }, 800);
+        function startPRDGeneration() {
+            const overlay = document.getElementById('prd-overlay');
+            const modal = document.getElementById('prd-modal');
+            const modalText = document.getElementById('prd-modal-text');
+
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            modalText.innerText = "Iniciando análise de escopo...";
+
+            setTimeout(() => {
+                modalText.innerText = "Nossa IA está elaborando um Documento de Requisitos de Produto abrangente para você";
+                modalText.style.fontWeight = "bold";
+                modalText.style.color = "var(--primary)";
+            }, 1500);
+
+            // Iniciar terminal do PO em background sem o comando default
+            addAgentTerminal('Product-Owner', 'user-check', true);
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                addTerminalLine('product-owner', '[PO] Olá! Recebi sua solicitação. O PRD está sendo gerado baseado no contexto atual do projeto.', 't-info');
+            }, 2000);
+
+            // Disparar comando real no backend
+            const projectName = prompt("Qual o nome do seu projeto?") || "Novo Projeto PAGIA";
+            const projectDesc = prompt("Descreva o seu projeto em poucas palavras:");
+
+            socket.emit('run-real-command', {
+                command: 'npx tsx apps/backend/src/scripts/gen-prd.ts',
+                args: [`"${projectName}"`, `"${projectDesc}"`],
+                terminalId: 'product-owner',
+                cwd: window.location.origin.includes('localhost') ? '.' : '/app'
+            });
+        }
+
+        // Atualizar Modal com Status Real do Terminal (Feedback Visual)
+        socket.on('terminal-log', (data) => {
+            const modal = document.getElementById('prd-modal');
+            const overlay = document.getElementById('prd-overlay');
+
+            // Só atualiza se o modal estiver visível
+            if (overlay.style.display === 'block') {
+                const modalText = document.getElementById('prd-modal-text');
+
+                // Filtra mensagens técnicas demais para mostrar algo amigável
+                let statusMsg = data.text;
+                if (statusMsg.includes('Tentando via:')) {
+                    const provider = statusMsg.split('via:')[1].split('(')[0].trim();
+                    modalText.innerHTML = `<span style="color:#e2e8f0">Alternando para IA: <strong style="color:#fbbf24">${provider}</strong>...</span>`;
+                } else if (statusMsg.includes('Iniciando geração')) {
+                    modalText.innerHTML = `<span style="color:#e2e8f0">Iniciando arquitetura do documento...</span>`;
+                } else if (statusMsg.includes('successo')) {
+                    modalText.innerHTML = `<span style="color:#10b981">Finalizando documento...</span>`;
+                }
+            }
+        });
+
+        // Listener para PRD Finalizado
+        // Polling de segurança para atualizar histórico enquanto processa
+        let prdPollingInterval;
+        let prdPollingAttempts = 0;
+
+        socket.on('prd-ready', (data) => {
+            if (prdPollingInterval) clearInterval(prdPollingInterval);
+
+            const modalText = document.getElementById('prd-modal-text');
+            modalText.innerHTML = `
+                <div style="text-align: center;">
+                    <h3 style="color: #10b981; margin-bottom: 0.5rem; font-size: 1.2rem;">✨ Documento Gerado!</h3>
+                    <p style="margin-bottom: 1.5rem; color: #cbd5e1;">Seu PRD está pronto para validação.</p>
+                    <a href="${data.url}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #10b981; color: #fff; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">
+                        <i data-lucide="download"></i> Download do Markdown
+                    </a>
+                </div>
+            `;
+            // Atualizar ícones e histórico
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            loadPRDHistory();
+
+            // Desativar loader
+            const loader = document.querySelector('.prd-loader');
+            if (loader) loader.style.display = 'none';
+
+            // Ativar confete se disponível
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#a855f7', '#10b981'] });
+            }
+
+            // Click fora fecha
+            document.getElementById('prd-overlay').onclick = () => {
+                document.getElementById('prd-overlay').style.display = 'none';
+                document.getElementById('prd-modal').style.display = 'none';
+            };
+        });
+
+        // Módulo de Histórico de PRDs
+        async function loadPRDHistory() {
+            try {
+                const response = await fetch('/api/list-prds');
+                const files = await response.json();
+                const container = document.getElementById('prd-history-list');
+
+                if (files.length === 0) {
+                    container.innerHTML = '<span style="font-size: 0.7rem; color: #64748b; text-align: center; padding: 1rem;">Nenhum documento gerado ainda.</span>';
+                    return;
+                }
+
+                container.innerHTML = files.map(file => {
+                    const date = new Date(file.date).toLocaleDateString('pt-BR');
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.4); padding: 0.7rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 0.5rem; transition: all 0.2s;">
+                            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: #e2e8f0; margin-bottom: 2px;">${file.name}</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8;">${date}</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${!file.name.includes('qa-report') ? `
+                                    <button onclick="runQAReview('${file.name}')" title="Auditoria de QA" class="btn-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.1); padding: 0.4rem; border-radius: 6px; border:none; cursor:pointer; transition: background 0.2s;">
+                                        <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                ` : ''}
+                                <a href="/api/download-prd?file=${file.name}" title="Download" class="btn-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 0.4rem; border-radius: 6px; transition: background 0.2s;">
+                                    <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        async function runQAReview(fileName) {
+            const overlay = document.getElementById('prd-overlay');
+            const modal = document.getElementById('prd-modal');
+            const modalText = document.getElementById('prd-modal-text');
+            const loader = document.querySelector('.prd-loader');
+
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+            if (loader) loader.style.display = 'block';
+
+            modalText.innerHTML = `<span style="color:#e2e8f0">Agente <strong style="color:#a855f7">QA Engineer</strong> auditando ${fileName}...</span>`;
+
+            // Start Polling history for QA reports (refresh every 4s)
+            if (prdPollingInterval) clearInterval(prdPollingInterval);
+            prdPollingInterval = setInterval(loadPRDHistory, 4000);
+
+            addAgentTerminal('QA-Engineer', 'shield-check', true);
+
+            socket.emit('run-real-command', {
+                command: 'npx tsx apps/backend/src/scripts/qa-review.ts',
+                args: [],
+                terminalId: 'qa-engineer',
+                cwd: '.'
+            });
+        }
+
+        // Carregar no início
+        window.addEventListener('load', loadPRDHistory);
+    </script>
+    <div class="prd-overlay" id="prd-overlay"></div>
+    <div class="prd-modal" id="prd-modal">
+        <div class="prd-loader"></div>
+        <h2 style="color: var(--primary); margin-bottom: 1rem;">Processando Inteligência</h2>
+        <p id="prd-modal-text" style="color: var(--text); font-size: 0.9rem; line-height: 1.5;"></p>
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: center;">
+            <span class="vibe-status-dot"></span> <span style="font-size: 0.7rem; color: var(--text-dim);">Sincronizando
+                com Product Owner Agent...</span>
+        </div>
+    </div>
+</body>
+
+</html>

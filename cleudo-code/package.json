@@ -1,0 +1,12 @@
+{
+  "name": "cleudo-code",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/vibesdk": "latest",
+    "hono": "^4.0.0"
+  }
+}

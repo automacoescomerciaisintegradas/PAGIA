@@ -1,0 +1,105 @@
+# Workflow: Code Review Pipeline
+# Tipo: Fan-out/Fan-in (análise paralela com consolidação)
+# Descrição: Pipeline de code review com análises paralelas de segurança,
+#            performance e qualidade, seguido por consolidação de resultados.
+
+id: code-review-pipeline
+name: Pipeline de Code Review
+description: Análise completa de código com múltiplas verificações paralelas
+
+config:
+  maxConcurrency: 3        # 3 análises simultâneas
+  timeout: 600000          # 10 minutos
+  failFast: false          # Continuar mesmo se uma análise falhar
+  retryPolicy:
+    maxAttempts: 2         # Retry em caso de falha
+    baseDelayMs: 2000      # 2s delay inicial
+    maxDelayMs: 10000      # 10s delay máximo
+    backoffMultiplier: 2   # Backoff exponencial
+
+nodes:
+  # Fase 1: Preparação
+  - id: prepare
+    name: Preparar Análise
+    agentId: analyst
+    # inputMapper customizado pode ser definido programaticamente
+
+  # Fase 2: Análises Paralelas
+  - id: security
+    name: Análise de Segurança
+    agentId: security-analyst
+
+  - id: performance
+    name: Análise de Performance
+    agentId: performance-analyst
+
+  - id: quality
+    name: Análise de Qualidade
+    agentId: code-quality-analyst
+
+  # Fase 3: Consolidação
+  - id: consolidate
+    name: Consolidar Resultados
+    agentId: reviewer
+
+edges:
+  # Início → Preparação
+  - from: __start__
+    to: prepare
+    label: Iniciar pipeline
+
+  # Preparação → Análises paralelas (fan-out)
+  - from: prepare
+    to: security
+    label: Iniciar análise de segurança
+
+  - from: prepare
+    to: performance
+    label: Iniciar análise de performance
+
+  - from: prepare
+    to: quality
+    label: Iniciar análise de qualidade
+
+  # Análises → Consolidação (fan-in)
+  - from: security
+    to: consolidate
+    label: Resultado de segurança
+
+  - from: performance
+    to: consolidate
+    label: Resultado de performance
+
+  - from: quality
+    to: consolidate
+    label: Resultado de qualidade
+
+  # Consolidação → Fim
+  - from: consolidate
+    to: __end__
+    label: Relatório final
+
+# Visualização do fluxo:
+#
+#              ┌───────────┐
+#              │   START   │
+#              └─────┬─────┘
+#                    │
+#                    ▼
+#              ┌───────────┐
+#              │  prepare  │
+#              └─────┬─────┘
+#           ┌────────┼────────┐
+#           ▼        ▼        ▼
+#      ┌────────┐ ┌────────┐ ┌────────┐
+#      │security│ │perform.│ │quality │  ← Paralelo
+#      └────┬───┘ └───┬────┘ └───┬────┘
+#           └────────┼────────┘
+#                    ▼
+#              ┌───────────┐
+#              │consolidate│  ← Aguarda todos
+#              └─────┬─────┘
+#                    ▼
+#              ┌───────────┐
+#              │    END    │
+#              └───────────┘

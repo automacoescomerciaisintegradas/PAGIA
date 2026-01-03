@@ -1,0 +1,14 @@
+id: 1767387822420
+name: gerador de webapps
+type: global
+description: uma plataforma de programação de vibe de IA
+status: planning
+objectives:
+  - Estabelecer a base do projeto
+  - Configurar ambiente de desenvolvimento
+  - Definir arquitetura principal
+stages: []
+milestones: []
+createdAt: 2026-01-02T21:03:42.420Z
+updatedAt: 2026-01-02T21:03:42.421Z
+owner: developer

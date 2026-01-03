@@ -1,0 +1,56 @@
+# Workflow: Development Pipeline
+# Tipo: Linear (sequencial)
+# Descrição: Pipeline de desenvolvimento completo seguindo TDD
+
+id: development-pipeline
+name: Pipeline de Desenvolvimento TDD
+description: Workflow sequencial seguindo o ciclo TDD (analyze → spec → test → implement → review)
+
+config:
+  maxConcurrency: 1        # Sequencial
+  timeout: 900000          # 15 minutos
+  failFast: true           # Parar no primeiro erro
+
+nodes:
+  - id: analyze
+    name: Analisar Requisitos
+    agentId: analyst
+
+  - id: spec
+    name: Criar Especificações
+    agentId: planner
+
+  - id: test
+    name: Escrever Testes
+    agentId: tdd-specialist
+
+  - id: implement
+    name: Implementar Código
+    agentId: developer
+
+  - id: review
+    name: Revisar Código
+    agentId: reviewer
+
+edges:
+  - from: __start__
+    to: analyze
+
+  - from: analyze
+    to: spec
+
+  - from: spec
+    to: test
+
+  - from: test
+    to: implement
+
+  - from: implement
+    to: review
+
+  - from: review
+    to: __end__
+
+# Visualização:
+#
+#   START → analyze → spec → test → implement → review → END

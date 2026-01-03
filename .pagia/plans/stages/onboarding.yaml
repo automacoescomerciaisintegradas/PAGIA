@@ -11,6 +11,7 @@ stages:
       - id: t2
         title: "Set up local environment"
         status: in-progress
+        assignedAgent: Architect
         assignee: new-dev
   - id: stage-2
     title: "First month"

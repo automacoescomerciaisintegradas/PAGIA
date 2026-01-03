@@ -25,6 +25,7 @@ tasks:
     module: api
     status: in-progress
     priority: high
+    assignedAgent: QA
     dependencies:
       - task-1
     checklist: []

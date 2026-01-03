@@ -1,0 +1,38 @@
+# Workflow: meu-workflow
+# Tipo: Paralelo (__start__ → [A, B, C] → __end__)
+
+id: meu-workflow
+name: meu-workflow
+description: Workflow com execução paralela
+
+config:
+  maxConcurrency: 5
+  timeout: 300000
+  failFast: false
+
+nodes:
+  - id: task-a
+    name: Tarefa A
+    agentId: agent-a  # Substitua pelo ID do agente
+
+  - id: task-b
+    name: Tarefa B
+    agentId: agent-b  # Substitua pelo ID do agente
+
+  - id: task-c
+    name: Tarefa C
+    agentId: agent-c  # Substitua pelo ID do agente
+
+edges:
+  - from: __start__
+    to: task-a
+  - from: __start__
+    to: task-b
+  - from: __start__
+    to: task-c
+  - from: task-a
+    to: __end__
+  - from: task-b
+    to: __end__
+  - from: task-c
+    to: __end__
