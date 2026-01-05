@@ -33,10 +33,12 @@ temp/
 *.tmp
 
 # PAGIA generated files (local)
-.pagia/_cache/
-.pagia/cache/
-.pagia/settings.local.json
-.pagia/router.json
-.pagia/_cfg/
-.pagia/credentials/
+**/.pagia/
+**/.pagia/_cache/
+**/.pagia/cache/
+**/.pagia/settings.local.json
+**/.pagia/router.json
+**/.pagia/_cfg/
+**/.pagia/credentials/
 cleudo-code/.env
+**/_cfg/config.yaml
