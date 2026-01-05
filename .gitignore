@@ -6,9 +6,11 @@ dist/
 
 # Environment files
 .env
+.env.*
 .env.local
-.env.local
-
+.env.development.local
+.env.test.local
+.env.production.local
 # IDE
 .vscode/
 .idea/
@@ -32,3 +34,9 @@ temp/
 
 # PAGIA generated files (local)
 .pagia/_cache/
+.pagia/cache/
+.pagia/settings.local.json
+.pagia/router.json
+.pagia/_cfg/
+.pagia/credentials/
+cleudo-code/.env

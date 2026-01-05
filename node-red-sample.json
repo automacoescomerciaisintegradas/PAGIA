@@ -1,0 +1,106 @@
+[
+    {
+        "id": "n1",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "node1",
+        "type": "inject",
+        "z": "n1",
+        "name": "Start Trigger",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 100,
+        "wires": [
+            [
+                "node2"
+            ]
+        ]
+    },
+    {
+        "id": "node2",
+        "type": "function",
+        "z": "n1",
+        "name": "Process Data",
+        "func": "return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 100,
+        "wires": [
+            [
+                "node3",
+                "node4"
+            ]
+        ]
+    },
+    {
+        "id": "node3",
+        "type": "debug",
+        "z": "n1",
+        "name": "Log Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "node4",
+        "type": "http request",
+        "z": "n1",
+        "name": "External API",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://example.com",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 500,
+        "y": 140,
+        "wires": [
+            [
+                "node5"
+            ]
+        ]
+    },
+    {
+        "id": "node5",
+        "type": "debug",
+        "z": "n1",
+        "name": "Log API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 140,
+        "wires": []
+    }
+]

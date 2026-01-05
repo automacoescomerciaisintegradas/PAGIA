@@ -1,0 +1,51 @@
+# Workflow: node-red-sample
+id: node-red-sample-1767458176063
+name: node-red-sample
+description: Importado do Node-RED via PAGIA CLI
+
+config:
+  maxConcurrency: 1
+  timeout: 300000
+  failFast: true
+
+nodes:
+  - id: "node1"
+    name: "Start Trigger"
+    agentId: planner
+    description: "Importado do Node-RED (Tipo: inject)"
+
+  - id: "node2"
+    name: "Process Data"
+    agentId: developer
+    description: "Importado do Node-RED (Tipo: function)"
+
+  - id: "node3"
+    name: "Log Success"
+    agentId: analyst
+    description: "Importado do Node-RED (Tipo: debug)"
+
+  - id: "node4"
+    name: "External API"
+    agentId: developer
+    description: "Importado do Node-RED (Tipo: http request)"
+
+  - id: "node5"
+    name: "Log API"
+    agentId: analyst
+    description: "Importado do Node-RED (Tipo: debug)"
+
+edges:
+  - from: "__start__"
+    to: "node1"
+  - from: "node1"
+    to: "node2"
+  - from: "node2"
+    to: "node3"
+  - from: "node2"
+    to: "node4"
+  - from: "node4"
+    to: "node5"
+  - from: "node3"
+    to: "__end__"
+  - from: "node5"
+    to: "__end__"

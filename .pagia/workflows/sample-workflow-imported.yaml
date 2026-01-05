@@ -1,0 +1,42 @@
+# Workflow importado do n8n: sample-workflow
+id: sample-workflow-1767455547909
+name: sample-workflow
+description: Importado automaticamente via PAGIA CLI
+
+config:
+  maxConcurrency: 1
+  timeout: 300000
+  failFast: true
+
+nodes:
+  - id: "start"
+    name: "Start"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.start)"
+
+  - id: "fetch-data"
+    name: "Fetch Data"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.httpRequest)"
+
+  - id: "process-data"
+    name: "Process Data"
+    agentId: developer
+    description: "Importado do n8n (Tipo: n8n-nodes-base.function)"
+
+  - id: "notify-slack"
+    name: "Notify Slack"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.slack)"
+
+edges:
+  - from: "__start__"
+    to: "start"
+  - from: "start"
+    to: "fetch-data"
+  - from: "fetch-data"
+    to: "process-data"
+  - from: "process-data"
+    to: "notify-slack"
+  - from: "notify-slack"
+    to: "__end__"

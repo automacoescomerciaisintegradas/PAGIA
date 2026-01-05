@@ -4,7 +4,7 @@ import { join } from 'path';
 import os from 'os';
 import YAML from 'yaml';
 
-import { listTemplatesDetailed } from '../src/commands/plan';
+import { listTemplatesDetailed } from '../apps/backend/src/commands/plan';
 
 describe('plan list-templates verbose', () => {
   let tmp: string;

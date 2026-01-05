@@ -1,6 +1,7 @@
 /**
  * PAGIA - Init Command
  * Inicialização Premium & Estruturada
+ * Seguindo padrão de CLIs como Claude Code, Cursor e Windsurf
  */
 
 import { Command } from 'commander';
@@ -11,6 +12,15 @@ import boxen from 'boxen';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { getConfigManager } from '../core/config-manager.js';
+import { getGlobalConfig } from '../core/global-config.js';
+import { getCredentialsManager } from '../core/credentials.js';
+import { getWorkspaceStorage } from '../core/workspace-storage.js';
+import {
+    ensureGlobalDirectories,
+    ensureProjectDirectories,
+    getGlobalConfigDir,
+    getProjectDirectoryStructure
+} from '../core/paths.js';
 import { logger } from '../utils/logger.js';
 import type { AIProviderType, ModuleConfig } from '../types/index.js';
 
@@ -105,41 +115,66 @@ async function runMainInit(options: any) {
     const configManager = getConfigManager();
 
     // Check if already initialized
-    if (configManager.isInitialized()) {
-        const { action } = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'action',
-                message: chalk.yellow('PAGIA já está detectado neste projeto.'),
-                choices: [
-                    { name: 'Atualizar configuração existente', value: 'update' },
-                    { name: 'Reinstalar (Sobrescrever tudo)', value: 'overwrite' },
-                    { name: 'Cancelar', value: 'cancel' },
-                ],
-            },
-        ]);
+    try {
+        if (configManager.isInitialized()) {
+            const { action } = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'action',
+                    message: chalk.yellow('PAGIA já está detectado neste projeto.'),
+                    choices: [
+                        { name: 'Atualizar configuração existente', value: 'update' },
+                        { name: 'Reinstalar (Sobrescrever tudo)', value: 'overwrite' },
+                        { name: 'Cancelar', value: 'cancel' },
+                    ],
+                },
+            ]);
 
-        if (action === 'cancel') {
-            logger.info('Operação cancelada.');
+            if (action === 'cancel') {
+                logger.info('Operação cancelada.');
+                return;
+            }
+            if (action === 'overwrite') {
+                logger.warn('⚠️  Isso irá sobrescrever configurações e planos locais!');
+                const { confirm } = await inquirer.prompt([{ type: 'confirm', name: 'confirm', message: 'Tem certeza?', default: false }]);
+                if (!confirm) return;
+            }
+        }
+    } catch (error: any) {
+        // Handle prompt cancellation (e.g., user pressing ESC, Ctrl+C)
+        if (error.name === 'ExitPromptError' || error.message?.includes('User force closed')) {
+            logger.info('Operação cancelada pelo usuário.');
             return;
         }
-        if (action === 'overwrite') {
-            logger.warn('⚠️  Isso irá sobrescrever configurações e planos locais!');
-            const { confirm } = await inquirer.prompt([{ type: 'confirm', name: 'confirm', message: 'Tem certeza?', default: false }]);
-            if (!confirm) return;
-        }
+        throw error; // Re-throw if it's a different error
     }
 
     // --- 2. Interactive Interview ---
-    const answers = await runSetupInterview(options.yes);
+    let answers;
+    try {
+        answers = await runSetupInterview(options.yes);
+    } catch (error: any) {
+        // Handle prompt cancellation during interview
+        if (error.name === 'ExitPromptError' || error.message?.includes('User force closed')) {
+            logger.info('Operação cancelada pelo usuário.');
+            return;
+        }
+        throw error; // Re-throw if it's a different error
+    }
 
     // --- 3. Construction Phase ---
     const spinner = logger.spin('Construindo a infraestrutura do PAGIA...');
     const start = Date.now();
 
     try {
-        // A. Initialize Core Config
-        spinner.text = 'Gerando configurações principais...';
+        // A. Initialize Global Configuration (AppData/Roaming/PAGIA)
+        spinner.text = 'Inicializando configuração global...';
+        const globalConfig = getGlobalConfig();
+        await globalConfig.initialize();
+        ensureGlobalDirectories();
+
+        // B. Initialize Core Config
+        spinner.text = 'Gerando configurações do projeto...';
         const finalConfig = await configManager.initialize({
             userName: answers.userName,
             language: answers.language,
@@ -152,13 +187,29 @@ async function runMainInit(options: any) {
             modules: createModulesConfig(answers.modules),
         });
 
-        // B. Create Directory Structure (The "Conductor" Architecture)
-        spinner.text = 'Criando arquitetura de pastas (Conductor)...';
+        // C. Create Project Directory Structure (Complete .pagia/)
+        spinner.text = 'Criando arquitetura de pastas do projeto...';
         const projectRoot = process.cwd();
+        ensureProjectDirectories(projectRoot);
         const pagiaRoot = join(projectRoot, '.pagia');
         createConductorStructure(pagiaRoot);
+        createProjectInstructions(pagiaRoot, answers);
+        createProjectSettings(pagiaRoot, answers);
 
-        // C. Create Initial Global Plan
+        // D. Initialize Workspace Storage
+        spinner.text = 'Configurando armazenamento de workspace...';
+        const workspaceStorage = getWorkspaceStorage(projectRoot);
+        await workspaceStorage.initialize();
+
+        // E. Import credentials from environment
+        spinner.text = 'Importando credenciais...';
+        const credentials = getCredentialsManager();
+        await credentials.importFromEnvironment();
+
+        // F. Add to recent workspaces
+        await globalConfig.addRecentWorkspace(projectRoot);
+
+        // G. Create Initial Global Plan
         spinner.text = 'Gerando Plano Global inicial...';
         createInitialGlobalPlan(join(pagiaRoot, 'conductor', 'global'), answers);
 
@@ -190,7 +241,7 @@ async function runMainInit(options: any) {
     } catch (error) {
         spinner.fail('Falha na inicialização');
         logger.error(error instanceof Error ? error.message : String(error));
-        process.exit(1);
+        process.exitCode = 1;
     }
 }
 
@@ -257,6 +308,9 @@ async function runSetupInterview(skip: boolean) {
                 { name: '🦙 Ollama (Local)', value: 'ollama' },
                 { name: '🌊 DeepSeek', value: 'deepseek' },
                 { name: '🔀 OpenRouter', value: 'openrouter' },
+                { name: '☁️ Alibaba Qwen', value: 'qwen' },
+                { name: '💻 AI Coder', value: 'coder' },
+                { name: '🤖 Claude Coder', value: 'claude-coder' },
             ],
             default: 'gemini',
         },
@@ -370,6 +424,102 @@ Planos gerados e geridos totalmente pelos agentes de IA.
     writeFileSync(join(conductorDir, 'README.md'), content, 'utf-8');
 }
 
+/**
+ * Create PAGIA.md instructions file for the project
+ * Similar to CLAUDE.md in Claude Code
+ */
+function createProjectInstructions(pagiaRoot: string, answers: any) {
+    const content = `# ${answers.projectName} - PAGIA Instructions
+
+Este arquivo contém instruções específicas para este projeto.
+O PAGIA lerá este arquivo para entender o contexto do projeto.
+
+## Sobre o Projeto
+
+**Nome:** ${answers.projectName}
+**Objetivo:** ${answers.projectGoal}
+**Proprietário:** ${answers.userName}
+
+## Arquitetura
+
+Descreva aqui a arquitetura do projeto:
+
+- Frontend: 
+- Backend: 
+- Banco de Dados: 
+- Infraestrutura: 
+
+## Convenções de Código
+
+- Linguagem principal: 
+- Framework: 
+- Estilo de código: 
+
+## Contexto Importante
+
+Adicione aqui informações importantes que os agentes de IA devem saber:
+
+---
+
+## Tarefas em Andamento
+
+<!-- O PAGIA atualizará esta seção automaticamente -->
+
+## Histórico de Decisões
+
+<!-- Decisões importantes tomadas no projeto -->
+
+---
+*Gerado automaticamente pelo PAGIA em ${new Date().toISOString()}*
+`;
+
+    const instructionsPath = join(pagiaRoot, 'PAGIA.md');
+    if (!existsSync(instructionsPath)) {
+        writeFileSync(instructionsPath, content, 'utf-8');
+    }
+}
+
+/**
+ * Create project settings.json file
+ * Similar to .claude/settings.json in Claude Code
+ */
+function createProjectSettings(pagiaRoot: string, answers: any) {
+    const settings = {
+        project: {
+            name: answers.projectName,
+            goal: answers.projectGoal,
+            language: answers.language,
+        },
+        ai: {
+            provider: answers.aiProvider,
+        },
+        permissions: {
+            allowFileEdit: true,
+            allowFileCreate: true,
+            allowFileDelete: false,
+            allowCommandExecution: false,
+            allowNetworkRequests: true,
+        },
+        context: {
+            include: ["src/**/*", "lib/**/*", "app/**/*", "components/**/*"],
+            exclude: ["node_modules/**", "dist/**", ".git/**", "*.log"],
+        },
+        mcpServers: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
+
+    const settingsPath = join(pagiaRoot, 'settings.json');
+    if (!existsSync(settingsPath)) {
+        writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+    }
+
+    const localSettingsPath = join(pagiaRoot, 'settings.local.json');
+    if (!existsSync(localSettingsPath)) {
+        writeFileSync(localSettingsPath, JSON.stringify({}, null, 2), 'utf-8');
+    }
+}
+
 function resolveApiKey(answers: any): string | undefined {
     if (answers.apiKey) return answers.apiKey;
     if (answers.aiProvider !== 'ollama') {
@@ -386,6 +536,9 @@ function getEnvApiKey(provider: string): string | undefined {
         openai: 'OPENAI_API_KEY',
         anthropic: 'ANTHROPIC_API_KEY',
         groq: 'GROQ_API_KEY',
+        qwen: 'QWEN_API_KEY',
+        coder: 'CODER_API_KEY',
+        'claude-coder': 'ANTHROPIC_API_KEY',
     };
     const key = map[provider] || `${provider.toUpperCase()}_API_KEY`;
     return process.env[key];
@@ -408,6 +561,9 @@ function getDefaultModel(provider: string): string {
         anthropic: 'claude-3-opus-20240229',
         groq: 'llama3-70b-8192',
         ollama: 'llama3',
+        qwen: 'qwen-max',
+        coder: 'deepseek-coder-v2',
+        'claude-coder': 'claude-3-5-sonnet-20241022',
     };
     return models[provider] || 'default-model';
 }

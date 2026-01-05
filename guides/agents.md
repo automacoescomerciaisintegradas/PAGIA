@@ -193,6 +193,41 @@ await agentRegistry.register(meuAgente, ['custom', 'minha-tag']);
 
 ---
 
+### 📝 Spec Writer Agent
+
+**Descrição:** Criação de especificações técnicas detalhadas
+
+**Capacidades:**
+- Criação de especificações técnicas completas
+- Documentação de requisitos funcionais e não-funcionais
+- Definição de cenários de uso e casos de teste
+- Modelagem de arquitetura e fluxos
+- Geração de documentação técnica padronizada
+- Alinhamento com padrões do projeto
+
+**Comandos:**
+```
+/spec        - Criar especificação técnica completa
+/rf          - Documentar requisitos funcionais
+/nf          - Documentar requisitos não-funcionais
+/arch        - Especificar arquitetura
+/flow        - Mapear fluxos de trabalho
+/acceptance  - Definir critérios de aceitação
+```
+
+**Exemplo de uso:**
+```bash
+pagia agent run spec-writer "/spec Sistema de gerenciamento de usuários"
+```
+
+**Benefícios:**
+- Padronização seguindo padrões PAGIA
+- Completude abrangente de todos os aspectos
+- Critérios de aceitação mensuráveis
+- Facilita trabalho em equipe e reduz retrabalho
+
+---
+
 ## Exemplo: Example Agent (pronto para uso)
 
 Um agente de exemplo está incluído em `src/agents/specialized/example-agent.ts` que demonstra:

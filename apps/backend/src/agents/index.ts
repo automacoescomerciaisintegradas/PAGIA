@@ -33,5 +33,5 @@ export { InngestAdapter, inngestAdapter } from './inngest-adapter.js';
 export { PAGIANetwork, pagiaNetwork } from './inngest-network.js';
 
 export { ProductBriefAgent, productBriefAgent } from './specialized/product-brief-agent.js';
-
+export { SpecWriterAgent, specWriterAgent } from './specialized/spec-writer-agent.js';
 

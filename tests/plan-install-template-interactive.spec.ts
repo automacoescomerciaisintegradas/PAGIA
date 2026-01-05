@@ -4,12 +4,20 @@ import { join } from 'path';
 import os from 'os';
 import YAML from 'yaml';
 
-vi.mock('inquirer', async (importOriginal) => {
-  const actual = await importOriginal();
-  return { ...actual, prompt: vi.fn() } as any;
+const { mockPrompt } = vi.hoisted(() => {
+  return { mockPrompt: vi.fn() };
 });
-import * as inquirer from 'inquirer';
-import { installTemplateInteractive } from '../src/commands/plan';
+
+vi.mock('inquirer', () => {
+  return {
+    default: {
+      prompt: mockPrompt,
+    },
+    prompt: mockPrompt,
+  };
+});
+import inquirer from 'inquirer';
+import { installTemplateInteractive } from '../apps/backend/src/commands/plan';
 
 describe('plan install-template interactive', () => {
   let tmp: string;
@@ -35,7 +43,7 @@ describe('plan install-template interactive', () => {
     // create existing target file
     writeFileSync(join(targetDir, 'web-app-mvp.yaml'), YAML.stringify({ name: 'Existing' }));
 
-    (inquirer as any).prompt = vi.fn().mockResolvedValue({ ok: false });
+    mockPrompt.mockResolvedValue({ ok: false });
 
     const res = await installTemplateInteractive(pagiaDir, 'web-app-mvp', targetDir, { type: 'stages' });
 
@@ -49,7 +57,7 @@ describe('plan install-template interactive', () => {
     // create existing target file
     writeFileSync(join(targetDir, 'web-app-mvp.yaml'), YAML.stringify({ name: 'Existing' }));
 
-    (inquirer as any).prompt = vi.fn().mockResolvedValue({ ok: true });
+    mockPrompt.mockResolvedValue({ ok: true });
 
     const res = await installTemplateInteractive(pagiaDir, 'web-app-mvp', targetDir, { type: 'stages' });
 
@@ -63,11 +71,11 @@ describe('plan install-template interactive', () => {
     writeFileSync(join(targetDir, 'web-app-mvp.yaml'), YAML.stringify({ name: 'Existing' }));
 
     // ensure prompt not called
-    (inquirer as any).prompt = vi.fn();
+    mockPrompt.mockReset();
 
     const res = await installTemplateInteractive(pagiaDir, 'web-app-mvp', targetDir, { type: 'stages', dryRun: true });
     expect(res.canceled).toBe(false);
-    expect(res.path.endsWith('.yaml')).toBe(true);
-    expect((inquirer as any).prompt).not.toHaveBeenCalled();
+    expect(res.path?.endsWith('.yaml')).toBe(true);
+    expect(mockPrompt).not.toHaveBeenCalled();
   });
 });

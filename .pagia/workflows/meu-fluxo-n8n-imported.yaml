@@ -1,0 +1,132 @@
+# Workflow importado do n8n: meu-fluxo-n8n
+id: meu-fluxo-n8n-1767456671164
+name: meu-fluxo-n8n
+description: Importado automaticamente via PAGIA CLI
+
+config:
+  maxConcurrency: 1
+  timeout: 300000
+  failFast: true
+
+nodes:
+  - id: "loop-over-items1"
+    name: "Loop Over Items1"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.splitInBatches)"
+
+  - id: "pegar-lista-de-leads"
+    name: "Pegar lista de leads"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.googleSheets)"
+
+  - id: "pegar-mensagem"
+    name: "Pegar mensagem"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.googleSheets)"
+
+  - id: "delay"
+    name: "Delay"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.wait)"
+
+  - id: "verificar-status"
+    name: "Verificar Status"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.if)"
+
+  - id: "enviar-mensagem-1"
+    name: "Enviar Mensagem 1"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.httpRequest)"
+
+  - id: "dados"
+    name: "Dados"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.set)"
+
+  - id: "enviar-mensagem-2"
+    name: "Enviar Mensagem 2"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.httpRequest)"
+
+  - id: "atualizar-status"
+    name: "Atualizar Status"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.googleSheets)"
+
+  - id: "atualizar-status1"
+    name: "Atualizar Status1"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.googleSheets)"
+
+  - id: "atualizar-active"
+    name: "Atualizar Active"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.googleSheets)"
+
+  - id: "gerar-n-mero"
+    name: "Gerar número"
+    agentId: developer
+    description: "Importado do n8n (Tipo: n8n-nodes-base.code)"
+
+  - id: "gerar-n-mero1"
+    name: "Gerar número1"
+    agentId: developer
+    description: "Importado do n8n (Tipo: n8n-nodes-base.code)"
+
+  - id: "switch"
+    name: "Switch"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: n8n-nodes-base.switch)"
+
+  - id: "openai"
+    name: "OpenAI"
+    agentId: analyst
+    description: "Importado do n8n (Tipo: @n8n/n8n-nodes-langchain.openAi)"
+
+  - id: "webhook"
+    name: "Webhook"
+    agentId: planner
+    description: "Importado do n8n (Tipo: n8n-nodes-base.webhook)"
+
+edges:
+  - from: "__start__"
+    to: "webhook"
+  - from: "loop-over-items1"
+    to: "atualizar-status1"
+  - from: "loop-over-items1"
+    to: "verificar-status"
+  - from: "delay"
+    to: "openai"
+  - from: "verificar-status"
+    to: "loop-over-items1"
+  - from: "verificar-status"
+    to: "gerar-n-mero"
+  - from: "pegar-lista-de-leads"
+    to: "loop-over-items1"
+  - from: "pegar-mensagem"
+    to: "atualizar-status"
+  - from: "dados"
+    to: "pegar-mensagem"
+  - from: "enviar-mensagem-1"
+    to: "atualizar-active"
+  - from: "enviar-mensagem-2"
+    to: "atualizar-active"
+  - from: "atualizar-status"
+    to: "pegar-lista-de-leads"
+  - from: "atualizar-active"
+    to: "loop-over-items1"
+  - from: "gerar-n-mero"
+    to: "delay"
+  - from: "gerar-n-mero1"
+    to: "switch"
+  - from: "switch"
+    to: "enviar-mensagem-1"
+  - from: "switch"
+    to: "enviar-mensagem-2"
+  - from: "openai"
+    to: "gerar-n-mero1"
+  - from: "webhook"
+    to: "dados"
+  - from: "atualizar-status1"
+    to: "__end__"

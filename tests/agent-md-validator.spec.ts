@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateAgentMarkdownContent } from '../src/agents/agent-md-validator';
+import { validateAgentMarkdownContent } from '../apps/backend/src/agents/agent-md-validator';
 
 describe('Agent Markdown Validator', () => {
   it('returns valid for a well-formed agent', () => {

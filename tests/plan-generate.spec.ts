@@ -4,7 +4,7 @@ import { join } from 'path';
 import os from 'os';
 import YAML from 'yaml';
 
-import { generatePlanFile } from '../src/commands/plan';
+import { generatePlanFile } from '../apps/backend/src/commands/plan';
 
 describe('plan generate', () => {
   let tmp: string;

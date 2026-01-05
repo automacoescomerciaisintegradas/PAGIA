@@ -218,7 +218,10 @@ export function validateWorkflow(workflow: WorkflowDefinition): WorkflowValidati
     const errors: WorkflowValidationError[] = [];
     const warnings: WorkflowValidationWarning[] = [];
 
-    // Validar limites
+    // Garantir arrays
+    if (!workflow.nodes) workflow.nodes = [];
+    if (!workflow.edges) workflow.edges = [];
+    if (!workflow.config) workflow.config = { ...DEFAULT_WORKFLOW_CONFIG };
     if (workflow.nodes.length === 0) {
         errors.push({
             code: 'NO_NODES',

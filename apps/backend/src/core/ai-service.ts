@@ -9,6 +9,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import type { AIProvider, AIProviderType } from '../types/index.js';
+import { getRouterManager } from './router-manager.js';
 
 export interface AIMessage {
     role: 'user' | 'assistant' | 'system';
@@ -36,12 +37,12 @@ export interface ProviderEndpoint {
 
 /**
  * Lista de modelos Gemini com fallback automático
- * Ordem: do mais preferido para o menos preferido
+ * Ordem: do mais preferido para o menos preferido (modelos disponíveis em 2026)
  */
 export const GEMINI_FALLBACK_MODELS = [
-    'gemini-2.5-pro-preview-06-05',      // Gemini 3 Pro (Low) - Padrão
-    'gemini-2.5-flash-preview-05-20',    // Gemini 3 Flash
+    'gemini-2.0-flash',                  // Gemini 2.0 Flash (recomendado)
     'gemini-2.0-flash-exp',              // Gemini 2.0 Flash Experimental
+    'gemini-2.0-flash-lite',             // Gemini 2.0 Flash Lite
     'gemini-1.5-flash',                  // Gemini 1.5 Flash (estável)
     'gemini-1.5-pro',                    // Gemini 1.5 Pro (estável)
 ];
@@ -94,6 +95,24 @@ const PROVIDER_CONFIGS: Record<string, ProviderEndpoint> = {
         modelEnv: 'OLLAMA_MODEL',
         defaultModel: process.env.OLLAMA_MODEL || 'llama3.1:latest',
     },
+    qwen: {
+        baseUrl: process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        apiKeyEnv: 'QWEN_API_KEY',
+        modelEnv: 'QWEN_MODEL',
+        defaultModel: 'qwen-max',
+    },
+    coder: {
+        baseUrl: process.env.CODER_BASE_URL || 'https://api.coder.com/v1',
+        apiKeyEnv: 'CODER_API_KEY',
+        modelEnv: 'CODER_MODEL',
+        defaultModel: 'deepseek-coder-v2',
+    },
+    'claude-coder': {
+        baseUrl: process.env.CLAUDE_CODER_BASE_URL || 'https://api.anthropic.com/v1',
+        apiKeyEnv: 'ANTHROPIC_API_KEY',
+        modelEnv: 'CLAUDE_CODER_MODEL',
+        defaultModel: 'claude-3-5-sonnet-20241022',
+    },
 };
 
 export class AIService {
@@ -127,6 +146,8 @@ export class AIService {
             case 'deepseek':
             case 'mistral':
             case 'openrouter':
+            case 'qwen':
+            case 'coder':
                 this.initOpenAICompatibleClient();
                 break;
             case 'ollama':
@@ -134,6 +155,7 @@ export class AIService {
                 this.initOllamaClient();
                 break;
             case 'anthropic':
+            case 'claude-coder':
                 // Anthropic uses fetch-based API
                 break;
         }
@@ -146,7 +168,11 @@ export class AIService {
         const config = PROVIDER_CONFIGS[this.provider.type];
         if (!config) return;
 
-        const baseURL = process.env[`${this.provider.type.toUpperCase()}_BASE_URL`] || config.baseUrl;
+        // Sanitize baseURL for OpenAI client: remove /chat/completions if present as the client adds it
+        let baseURL = process.env[`${this.provider.type.toUpperCase()}_BASE_URL`] || config.baseUrl;
+        if (baseURL.endsWith('/chat/completions')) {
+            baseURL = baseURL.replace('/chat/completions', '');
+        }
 
         const clientConfig: any = {
             apiKey: this.provider.apiKey,
@@ -276,9 +302,12 @@ export class AIService {
                 case 'deepseek':
                 case 'mistral':
                 case 'openrouter':
+                case 'qwen':
+                case 'coder':
                 case 'ollama':
                     return await this.chatOpenAICompatible(messages);
                 case 'anthropic':
+                case 'claude-coder':
                     return await this.chatAnthropic(messages);
                 default:
                     throw new Error(`Provider ${this.provider.type} not supported`);
@@ -322,16 +351,14 @@ export class AIService {
         const lastMessage = chatHistory[chatHistory.length - 1];
         const historyForChat = chatHistory.slice(0, -1) as any;
 
-        // Models to try in order of preference (confirmed available from API response)
+        // Models to try in order of preference (confirmed available from API - 2026)
         const modelsToTry = [
             this.provider.model || 'gemini-2.0-flash',
             'gemini-2.0-flash',
             'gemini-2.0-flash-exp',
-            'gemini-exp-1206',
+            'gemini-2.0-flash-lite',
             'gemini-1.5-flash',
             'gemini-1.5-pro',
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-pro-latest'
         ];
 
         // Remove duplicates
@@ -554,6 +581,9 @@ export class AIService {
             mistral: 'Mistral AI',
             openrouter: 'OpenRouter',
             local: 'Local Model',
+            qwen: 'Alibaba Qwen',
+            coder: 'AI Coder',
+            'claude-coder': 'Claude Coder',
         };
 
         return {
@@ -580,6 +610,9 @@ function getApiKeyForProvider(type: AIProviderType, configApiKey?: string): stri
         mistral: 'MISTRAL_API_KEY',
         openrouter: 'OPENROUTER_API_KEY',
         local: '',
+        qwen: 'QWEN_API_KEY',
+        coder: 'CODER_API_KEY',
+        'claude-coder': 'ANTHROPIC_API_KEY',
     };
 
     const envVar = envMapping[type];
@@ -593,7 +626,7 @@ function getDefaultModelForProvider(type: AIProviderType, configModel?: string):
     if (configModel) return configModel;
 
     const defaults: Record<AIProviderType, string> = {
-        gemini: process.env.GEMINI_MODEL || 'gemini-2.5-pro-preview-06-05', // Gemini 3 Pro (Low)
+        gemini: process.env.GEMINI_MODEL || 'gemini-2.0-flash', // Gemini 2.0 Flash (estável)
         openai: process.env.OPENAI_MODEL || 'gpt-4o',
         anthropic: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
         groq: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
@@ -602,6 +635,9 @@ function getDefaultModelForProvider(type: AIProviderType, configModel?: string):
         mistral: process.env.MISTRAL_MODEL || 'mistral-large-latest',
         openrouter: process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4',
         local: 'local-model',
+        qwen: process.env.QWEN_MODEL || 'qwen-max',
+        coder: process.env.CODER_MODEL || 'deepseek-coder-v2',
+        'claude-coder': process.env.CLAUDE_CODER_MODEL || 'claude-3-5-sonnet-20241022',
     };
 
     return defaults[type];
@@ -609,14 +645,36 @@ function getDefaultModelForProvider(type: AIProviderType, configModel?: string):
 
 // Factory function
 export function createAIService(config?: Partial<AIProvider>): AIService {
-    const type = (config?.type || process.env.AI_PROVIDER || 'gemini') as AIProviderType;
+    const router = getRouterManager();
+    // Use a sync load since AIService might be created in many places
+    const routerConfig = router.getConfig();
+
+    let type = (config?.type || process.env.AI_PROVIDER) as AIProviderType;
+    let model = config?.model;
+    let apiKey = config?.apiKey;
+    let temp = config?.temperature;
+    let tokens = config?.maxTokens;
+
+    // If no explicit config/env, try to get from router.json
+    if (!type && routerConfig && routerConfig.router?.default) {
+        type = routerConfig.router.default.provider as AIProviderType;
+        model = routerConfig.router.default.model;
+
+        const providerData = routerConfig.providers.find(p => p.name === type);
+        if (providerData) {
+            apiKey = providerData.api_key;
+        }
+    }
+
+    // Default to gemini if still nothing
+    if (!type) type = 'gemini';
 
     const provider: AIProvider = {
         type,
-        apiKey: getApiKeyForProvider(type, config?.apiKey),
-        model: getDefaultModelForProvider(type, config?.model),
-        temperature: config?.temperature || 0.7,
-        maxTokens: config?.maxTokens || 8192,
+        apiKey: apiKey || getApiKeyForProvider(type),
+        model: model || getDefaultModelForProvider(type),
+        temperature: temp || 0.7,
+        maxTokens: tokens || 8192,
     };
 
     return new AIService(provider);
@@ -635,6 +693,9 @@ export function getAvailableProviders(): Array<{ type: AIProviderType; name: str
         { type: 'deepseek', name: 'DeepSeek', description: 'DeepSeek Chat, Coder', requiresApiKey: true },
         { type: 'mistral', name: 'Mistral AI', description: 'Mistral Large, Medium', requiresApiKey: true },
         { type: 'openrouter', name: 'OpenRouter', description: 'Acesso a múltiplos provedores', requiresApiKey: true },
+        { type: 'qwen', name: 'Alibaba Qwen', description: 'Modelos Qwen (Max, Plus)', requiresApiKey: true },
+        { type: 'coder', name: 'AI Coder', description: 'Modelos especializados em codificação', requiresApiKey: true },
+        { type: 'claude-coder', name: 'Claude Coder', description: 'Claude especializado em codificação', requiresApiKey: true },
     ];
 }
 

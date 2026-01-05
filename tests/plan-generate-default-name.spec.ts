@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { humanizeTemplateName } from '../src/commands/plan';
+import { humanizeTemplateName } from '../apps/backend/src/commands/plan';
 
 describe('humanizeTemplateName', () => {
   it('converts template file names to a friendly name', () => {

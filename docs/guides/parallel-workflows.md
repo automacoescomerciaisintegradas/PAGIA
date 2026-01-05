@@ -29,30 +29,44 @@ O sistema de workflows permite definir **grafos acíclicos direcionados (DAG)** 
           └─────┘
 ```
 
+## Editor Visual (Novo!)
+
+O PAGIA agora inclui um poderoso editor visual baseado em DAGs para facilitar a criação de workflows complexos sem precisar editar arquivos YAML manualmente.
+
+### Funcionalidades
+- **Interface Arrastar e Soltar**: Adicione e conecte agentes visualmente.
+- **Validação em Tempo Real**: Detecte ciclos e conexões inválidas instantaneamente.
+- **Auto-Layout**: Organize seu grafo automaticamente com um clique.
+- **Gerenciamento Completo**: Crie, salve, carregue e delete workflows diretamente do navegador.
+- **Preview YAML**: Veja o código gerado em tempo real.
+
+### Como Usar
+
+Para iniciar o editor, basta rodar o comando:
+
+```bash
+pagia workflow editor
+```
+
+Isso iniciará o servidor local e abrirá o editor no seu navegador padrão (geralmente em `http://localhost:3001`).
+
+![DAG Editor](https://placeholder-image-url.com/dag-editor-preview)
+
+1. **Adicionar Nodos**: Clique nos botões dos agentes na barra lateral esquerda.
+2. **Conectar**: Arraste da alça inferior de um nodo para a alça superior de outro.
+3. **Configurar**: Edite o nome e descrição do workflow no painel esquerdo.
+4. **Salvar**: Clique em "Salvar no Servidor" para persistir o workflow.
+
+---
+
 ## Comandos CLI
 
-### Listar Workflows
+Além do editor visual, você pode gerenciar workflows via terminal:
 
+### Listar Workflows
 ```bash
 pagia workflow list
 ```
-
-### Criar Workflow
-
-```bash
-# Linear (sequencial)
-pagia workflow create my-workflow --type linear
-
-# Paralelo
-pagia workflow create my-workflow --type parallel
-
-# Fan-out/Fan-in
-pagia workflow create my-workflow --type fan-out-in
-```
-
-### Validar Workflow
-
-```bash
 pagia workflow validate my-workflow
 ```
 

@@ -16,7 +16,7 @@ export interface PAGIAConfig {
     modules: ModuleConfig[];
 }
 
-export type AIProviderType = 'gemini' | 'openai' | 'anthropic' | 'groq' | 'ollama' | 'deepseek' | 'mistral' | 'openrouter' | 'local';
+export type AIProviderType = 'gemini' | 'openai' | 'anthropic' | 'groq' | 'ollama' | 'deepseek' | 'mistral' | 'openrouter' | 'local' | 'qwen' | 'coder' | 'claude-coder';
 
 export interface AIProvider {
     type: AIProviderType;

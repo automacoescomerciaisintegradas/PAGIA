@@ -4,7 +4,7 @@ import { join } from 'path';
 import os from 'os';
 import YAML from 'yaml';
 
-import { applyUpdates } from '../src/commands/update';
+import { applyUpdates } from '../apps/backend/src/commands/update';
 
 describe('applyUpdates integration', () => {
   let tmp: string;

@@ -1,0 +1,285 @@
+# ════════════════════════════════════════════════════════════════════════════════
+# PAGIA - Plano de Ação de Gestão e Implementação com IA
+# Arquivo de Configuração Principal
+# ════════════════════════════════════════════════════════════════════════════════
+
+version: 1.0.0
+base_install: true
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# AI PROVIDERS
+# Configure os provedores de IA disponíveis para sua CLI
+# ════════════════════════════════════════════════════════════════════════════════
+
+ai_provider:
+  # Provider padrão (openai, gemini, groq, mistral, anthropic, openrouter, qwen, deepseek, ollama, local)
+  default: groq
+  
+  # Fallback quando o provider principal falhar
+  fallback: gemini
+  
+  # Timeout para chamadas de API (em segundos)
+  timeout: 60
+  
+  # Máximo de tentativas em caso de falha
+  max_retries: 3
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INTEGRAÇÃO COM CLAUDE CODE
+# Configure para usar comandos Claude Code no seu projeto
+#
+# Override: --claude-code-commands=true/false
+# ════════════════════════════════════════════════════════════════════════════════
+
+claude_code_commands: true
+
+# Instalar agentes como subagentes do Claude Code
+# Requer: claude_code_commands: true
+#
+# Override: --use-claude-code-subagents=true/false
+use_claude_code_subagents: true
+
+# Usar Skills do Claude Code para standards
+# Requer: claude_code_commands: true
+#
+# Override: --standards-as-claude-code-skills=true/false
+standards_as_claude_code_skills: false
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INTEGRAÇÃO COM OUTRAS FERRAMENTAS
+# Configure para Cursor, Windsurf, Qwen Code, etc.
+#
+# Override: --pagia-commands=true/false
+# ════════════════════════════════════════════════════════════════════════════════
+
+pagia_commands: true
+
+# Pasta onde os comandos serão instalados
+commands_folder: .pagia/commands
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# AGENTES
+# Configure os agentes disponíveis e seu comportamento
+# ════════════════════════════════════════════════════════════════════════════════
+
+agents:
+  # Pasta onde os agentes estão definidos
+  folder: .pagia/agents
+  
+  # Agentes habilitados por padrão
+  enabled:
+    - spec-initializer
+    - spec-shaper
+    - spec-writer
+    - spec-verifier
+    - task-planner
+    - implementer
+    - implementation-verifier
+    - product-planner
+    - task-list-creator
+  
+  # Composição de agentes (pipeline, parallel, voting)
+  composition_strategy: pipeline
+  
+  # Modo de execução (interactive, autonomous)
+  execution_mode: interactive
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# PLANOS E TAREFAS
+# Configure como planos e tarefas são gerenciados
+# ════════════════════════════════════════════════════════════════════════════════
+
+plans:
+  # Pasta principal dos planos
+  folder: .pagia/plans
+  
+  # Tipos de plano habilitados
+  types:
+    - global    # Plano estratégico de alto nível
+    - stages    # Plano detalhado por etapas
+    - prompts   # Planos gerados por prompts
+    - ai        # Planos autônomos da IA
+  
+  # Sincronização automática de tarefas
+  auto_sync: true
+  
+  # Formato de exportação (yaml, json, markdown)
+  export_format: yaml
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# BASE DE CONHECIMENTO
+# Configure a base de conhecimento semântica
+# ════════════════════════════════════════════════════════════════════════════════
+
+knowledge:
+  # Pasta da base de conhecimento
+  folder: .pagia/knowledge
+  
+  # Tipos de documentos aceitos
+  supported_types:
+    - markdown
+    - typescript
+    - javascript
+    - python
+    - yaml
+    - json
+  
+  # Indexação automática
+  auto_index: true
+  
+  # Modelo de embeddings
+  embedding_model: text-embedding-3-small
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# MCP SERVER
+# Configure o servidor Model Context Protocol
+# ════════════════════════════════════════════════════════════════════════════════
+
+mcp:
+  # Habilitar servidor MCP
+  enabled: true
+  
+  # Porta padrão
+  port: 3100
+  
+  # Ferramentas expostas
+  tools:
+    - read_plan
+    - update_plan
+    - list_agents
+    - run_agent
+    - search_knowledge
+  
+  # IDEs suportadas
+  ide_configs:
+    - cursor
+    - vscode
+    - claude
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# TDD WORKFLOW
+# Configure o fluxo de desenvolvimento orientado a testes
+# ════════════════════════════════════════════════════════════════════════════════
+
+tdd:
+  # Habilitar TDD workflow
+  enabled: true
+  
+  # Framework de testes padrão
+  test_framework: vitest
+  
+  # Comando para rodar testes
+  test_command: npm test
+  
+  # Cobertura mínima exigida (%)
+  min_coverage: 80
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# LLM GATEWAY
+# Configure o gateway local para LLMs
+# ════════════════════════════════════════════════════════════════════════════════
+
+llm_gateway:
+  # Habilitar gateway
+  enabled: true
+  
+  # Porta do gateway
+  port: 3000
+  
+  # URL do LLM local (llama.cpp, LM Studio, etc)
+  local_llm_url: http://localhost:8080
+  
+  # Providers habilitados no gateway
+  providers:
+    - local
+    - openai
+    - gemini
+    - anthropic
+    - groq
+    - deepseek
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INTERFACE
+# Configure a aparência e comportamento da CLI
+# ════════════════════════════════════════════════════════════════════════════════
+
+interface:
+  # Tema (light, dark, auto)
+  theme: auto
+  
+  # Idioma (pt-BR, en-US)
+  language: pt-BR
+  
+  # Mostrar banner ao iniciar
+  show_banner: true
+  
+  # Mostrar dicas
+  show_tips: true
+  
+  # Modo debug
+  debug: false
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# PROFILE
+# Perfil padrão a ser usado
+#
+# Override: --profile [nome-do-perfil]
+# ════════════════════════════════════════════════════════════════════════════════
+
+profile: default
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# PROFILES
+# Defina perfis customizados para diferentes contextos
+# ════════════════════════════════════════════════════════════════════════════════
+
+profiles:
+  default:
+    ai_provider: groq
+    agents:
+      - analyst
+      - coder
+    execution_mode: interactive
+  
+  autonomous:
+    ai_provider: openai
+    agents:
+      - conductor
+      - analyst
+      - architect
+      - coder
+      - tester
+    execution_mode: autonomous
+  
+  minimal:
+    ai_provider: groq
+    agents:
+      - coder
+    execution_mode: interactive
+  
+  enterprise:
+    ai_provider: anthropic
+    agents:
+      - product-owner
+      - scrum-master
+      - analyst
+      - architect
+      - coder
+      - qa
+      - tester
+    execution_mode: autonomous
+    tdd:
+      enabled: true
+      min_coverage: 90

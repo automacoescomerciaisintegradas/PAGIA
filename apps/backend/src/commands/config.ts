@@ -23,7 +23,8 @@ configCommand
 
         if (!configManager.isInitialized()) {
             logger.error('PAGIA não está inicializado.');
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         const config = configManager.load()!;
@@ -64,7 +65,8 @@ configCommand
 
         if (!configManager.isInitialized()) {
             logger.error('PAGIA não está inicializado.');
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         try {
@@ -78,7 +80,7 @@ configCommand
             logger.success(`Configuração ${chalk.cyan(key)} atualizada para ${chalk.green(String(value))}`);
         } catch (error) {
             logger.error(error instanceof Error ? error.message : String(error));
-            process.exit(1);
+            process.exitCode = 1;
         }
     });
 
@@ -91,7 +93,8 @@ configCommand
 
         if (!configManager.isInitialized()) {
             logger.error('PAGIA não está inicializado.');
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         const value = configManager.get(key);
@@ -112,7 +115,8 @@ configCommand
 
         if (!configManager.isInitialized()) {
             logger.error('PAGIA não está inicializado.');
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         const config = configManager.load()!;
@@ -131,6 +135,9 @@ configCommand
                     { name: '🌊 DeepSeek', value: 'deepseek' },
                     { name: '🌬️ Mistral AI', value: 'mistral' },
                     { name: '🔀 OpenRouter', value: 'openrouter' },
+                    { name: '☁️ Alibaba Qwen', value: 'qwen' },
+                    { name: '💻 AI Coder', value: 'coder' },
+                    { name: '🤖 Claude Coder', value: 'claude-coder' },
                 ],
                 default: config.aiProvider.type,
             },
@@ -193,7 +200,8 @@ configCommand
 
         if (!configManager.isInitialized()) {
             logger.error('PAGIA não está inicializado.');
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         if (!options.force) {
@@ -283,6 +291,30 @@ function getModelChoices(provider: string): { name: string; value: string }[] {
                 { name: 'GPT-4o', value: 'openai/gpt-4o' },
                 { name: 'LLaMA 3.1 405B', value: 'meta-llama/llama-3.1-405b-instruct' },
                 { name: 'Gemini Pro 1.5', value: 'google/gemini-pro-1.5' },
+            ];
+        case 'qwen':
+            return [
+                { name: 'Qwen Max', value: 'qwen-max' },
+                { name: 'Qwen Plus', value: 'qwen-plus' },
+                { name: 'Qwen Turbo', value: 'qwen-turbo' },
+                { name: 'Qwen 2.5 72B', value: 'qwen2.5-72b-instruct' },
+                { name: 'Qwen 2.5 32B', value: 'qwen2.5-32b-instruct' },
+                { name: 'Qwen 2.5 14B', value: 'qwen2.5-14b-instruct' },
+            ];
+        case 'coder':
+            return [
+                { name: 'DeepSeek Coder v2', value: 'deepseek-coder-v2' },
+                { name: 'Phind CodeLlama', value: 'phind-codellama-34b-v2' },
+                { name: 'CodeT5', value: 'codet5' },
+                { name: 'StarCoder', value: 'starcoder' },
+                { name: 'CodeLlama 70B', value: 'codellama-70b-instruct' },
+            ];
+        case 'claude-coder':
+            return [
+                { name: 'Claude 3.5 Sonnet', value: 'claude-3-5-sonnet-20241022' },
+                { name: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
+                { name: 'Claude 3 Sonnet', value: 'claude-3-sonnet-20240229' },
+                { name: 'Claude 3 Haiku', value: 'claude-3-haiku-20240307' },
             ];
         default:
             return [];

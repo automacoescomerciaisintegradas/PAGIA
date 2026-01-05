@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(node ./dist/index.js --help)",
+      "Bash(node ./dist/index.js auth --help)",
+      "Bash(node ./dist/index.js config --help)",
+      "Bash(node ./dist/index.js config ai --help)",
+      "Bash(npx tsc)",
+      "Bash(node ./dist/index.js auth status)"
+    ]
+  }
+}

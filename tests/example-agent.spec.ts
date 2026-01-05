@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('../src/core/ai-service', () => {
+vi.mock('../apps/backend/src/core/ai-service', () => {
   return {
     createAIService: () => {
       return {
@@ -17,7 +17,7 @@ vi.mock('../src/core/ai-service', () => {
 
 describe('ExampleAgent (integração mínima)', () => {
   it('deve retornar resposta formatada e extrair actions sugeridas', async () => {
-    const { ExampleAgent } = await import('../src/agents/specialized/example-agent');
+    const { ExampleAgent } = await import('../apps/backend/src/agents/specialized/example-agent');
 
     const agent = new ExampleAgent();
 

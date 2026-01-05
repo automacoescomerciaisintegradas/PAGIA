@@ -18,6 +18,7 @@ import { validateWorkflow, DAGBuilder, serializeWorkflow } from '../agents/workf
 import { eventBus, PAGIAEvents } from '../core/event-bus.js';
 import type { WorkflowDefinition, WorkflowConfig } from '../agents/workflow-types.js';
 import { START_NODE_ID, END_NODE_ID, DEFAULT_WORKFLOW_CONFIG } from '../agents/workflow-types.js';
+import { detectFormat, convertN8nToPagia, convertNodeRedToPagia } from '../utils/workflow-converter.js';
 
 export const workflowCommand = new Command('workflow')
     .description('Gerenciar workflows de agentes');
@@ -47,6 +48,8 @@ workflowCommand
             return;
         }
 
+        console.log(chalk.dim(`📂 Local: ${workflowsDir}\n`));
+
         const files = readdirSync(workflowsDir).filter(f =>
             f.endsWith('.yaml') || f.endsWith('.yml') || f.endsWith('.json')
         );
@@ -56,12 +59,16 @@ workflowCommand
             return;
         }
 
-        const workflows: Array<{
-            Name: string;
-            Description: string;
-            Nodes: number;
-            Status: string;
-        }> = [];
+        // Header
+        console.log(
+            chalk.bold('  SERVER'.padEnd(20)) +
+            chalk.bold('NODES'.padEnd(10)) +
+            chalk.bold('STATUS'.padEnd(15)) +
+            chalk.bold('DESCRIPTION')
+        );
+        console.log(chalk.dim('  ' + '─'.repeat(70)));
+
+        let count = 0;
 
         for (const file of files) {
             try {
@@ -72,26 +79,25 @@ workflowCommand
 
                 const validation = validateWorkflow(def as WorkflowDefinition);
 
-                workflows.push({
-                    Name: def.name || basename(file, '.yaml'),
-                    Description: def.description || '-',
-                    Nodes: def.nodes?.length || 0,
-                    Status: validation.valid
-                        ? chalk.green('✓ Valid')
-                        : chalk.red('✗ Invalid'),
-                });
+                const name = (def.name || basename(file, '.yaml')).padEnd(20);
+                const nodes = String(def.nodes?.length || 0).padEnd(10);
+                const statusStr = validation.valid ? '✓ Valid' : '✗ Invalid';
+                const statusColor = validation.valid ? chalk.green : chalk.red;
+                const status = statusColor(statusStr).padEnd(15 + (statusColor('x').length - 1)); // adjust for ansi codes length
+                // Simpler padding approach for color:
+                const statusDisplay = validation.valid ? chalk.green('✓ Valid  ') : chalk.red('✗ Invalid');
+
+                const desc = chalk.dim((def.description || '-').substring(0, 40));
+
+                // Manual padding alignment
+                process.stdout.write(`  ${name}${nodes}${statusDisplay}   ${desc}\n`);
+                count++;
             } catch (error) {
-                workflows.push({
-                    Name: basename(file),
-                    Description: 'Erro ao carregar',
-                    Nodes: 0,
-                    Status: chalk.red('✗ Error'),
-                });
+                console.log(`  ${chalk.red(basename(file).padEnd(20))} Error loading file`);
             }
         }
 
-        console.table(workflows);
-        logger.info(`Total: ${workflows.length} workflow(s)`);
+        console.log('\n' + chalk.dim(`  Total: ${count} workflow(s)`));
     });
 
 // ============================================================================
@@ -369,8 +375,73 @@ workflowCommand
     });
 
 // ============================================================================
+// Import Workflow (n8n, etc)
+// ============================================================================
+
+workflowCommand
+    .command('import <file>')
+    .description('Importar workflow de outras plataformas (ex: n8n)')
+    .option('-t, --type <type>', 'Tipo de origem: n8n', 'n8n')
+    .action(async (file, options) => {
+        const configManager = getConfigManager();
+        if (!configManager.isInitialized()) {
+            logger.warn('PAGIA não foi inicializado.');
+            return;
+        }
+
+        const workflowsDir = join(configManager.getPagiaFolder(), 'workflows');
+
+        if (!existsSync(file)) {
+            logger.error(`Arquivo não encontrado: ${file}`);
+            return;
+        }
+
+        try {
+            const content = readFileSync(file, 'utf-8');
+            let json;
+            try {
+                json = JSON.parse(content);
+            } catch {
+                logger.error('O arquivo deve ser um JSON válido.');
+                return;
+            }
+
+            let pagiaWorkflow;
+            const format = options.type || detectFormat(json); // Detecta automaticamente se não especificado
+            logger.info(`Formato detectado: ${format}`);
+
+            if (format === 'n8n') {
+                const name = basename(file, '.json').toLowerCase().replace(/\s+/g, '-');
+                pagiaWorkflow = convertN8nToPagia(name, json);
+
+                const outputFile = join(workflowsDir, `${name}-imported.yaml`);
+                writeFileSync(outputFile, pagiaWorkflow, 'utf-8');
+                logger.success(`Workflow n8n importado com sucesso: ${outputFile}`);
+            } else if (format === 'node-red') {
+                const name = basename(file, '.json').toLowerCase().replace(/\s+/g, '-');
+                pagiaWorkflow = convertNodeRedToPagia(name, json);
+
+                const outputFile = join(workflowsDir, `${name}-imported.yaml`);
+                writeFileSync(outputFile, pagiaWorkflow, 'utf-8');
+                logger.success(`Workflow Node-RED importado com sucesso: ${outputFile}`);
+            } else {
+                logger.error(`Formato desconhecido ou não suportado (apenas n8n e node-red detectados). Use --type se necessário.`);
+                return;
+            }
+
+            logger.info('💡 Dica: Abra o "pagia workflow editor" para ajustar os agentes de cada nodo.');
+
+        } catch (error) {
+            logger.error(`Erro na importação: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    });
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
+
+// function convertN8nToPagia moved to ../utils/workflow-converter.ts
+
 
 function findWorkflowFile(dir: string, name: string): string | null {
     if (!existsSync(dir)) return null;
@@ -622,3 +693,72 @@ edges:
 
     return templates[type] || templates.linear;
 }
+
+// ============================================================================
+// API Server Command
+// ============================================================================
+
+workflowCommand
+    .command('api')
+    .description('Iniciar servidor de API REST para workflows')
+    .option('-p, --port <port>', 'Porta do servidor', '3001')
+    .action(async (options) => {
+        const port = parseInt(options.port, 10);
+
+        logger.section('Workflow API Server');
+
+        try {
+            // Import dinâmico para evitar carregar Express quando não necessário
+            const { startWorkflowServer } = await import('../api/workflow-server.js');
+            await startWorkflowServer(port);
+
+            logger.info('Pressione Ctrl+C para parar o servidor.');
+        } catch (error) {
+            logger.error(`Erro ao iniciar servidor: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    });
+
+// ============================================================================
+// Editor Command (abre o editor visual)
+// ============================================================================
+
+workflowCommand
+    .command('editor')
+    .description('Iniciar editor visual de DAG')
+    .option('-p, --port <port>', 'Porta do servidor', '3001')
+    .action(async (options) => {
+        const port = parseInt(options.port, 10);
+
+        logger.section('Workflow Editor');
+
+        try {
+            const { startWorkflowServer } = await import('../api/workflow-server.js');
+            await startWorkflowServer(port);
+
+            console.log(chalk.cyan(`
+╔═══════════════════════════════════════════════════════════════╗
+║                    🎨 PAGIA DAG Editor                        ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  Editor rodando em:                                           ║
+║  ${chalk.green(`http://localhost:${port}`)}                                  ║
+║                                                               ║
+║  API disponível em:                                           ║
+║  ${chalk.blue(`http://localhost:${port}/api`)}                              ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+`));
+
+            // Tentar abrir no navegador
+            try {
+                const open = (await import('open')).default;
+                await open(`http://localhost:${port}`);
+            } catch {
+                // Ignore se não conseguir abrir
+            }
+
+            logger.info('Pressione Ctrl+C para parar.');
+        } catch (error) {
+            logger.error(`Erro ao iniciar editor: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    });

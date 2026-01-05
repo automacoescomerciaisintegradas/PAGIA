@@ -1,0 +1,25 @@
+name: Close stale threads
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # daily at 09:00 UTC
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-message: >
+            Esta issue foi marcada como inativa devido à falta de atividade. Se ainda é um problema,
+            por favor adicione novos detalhes (logs, passos para reproduzir) e revisaremos.
+          close-issue-message: >
+            Fechando devido à inatividade. Se você puder fornecer um caso reproduzível na versão mais recente,
+            por favor abra um novo relatório de bug com detalhes completos. Obrigado!
+          exempt-issue-labels: bug

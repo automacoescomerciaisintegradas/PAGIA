@@ -171,6 +171,9 @@ export class ConfigManager {
                         deepseek: process.env.DEEPSEEK_API_KEY,
                         mistral: process.env.MISTRAL_API_KEY,
                         openrouter: process.env.OPENROUTER_API_KEY,
+                        qwen: process.env.QWEN_API_KEY,
+                        coder: process.env.CODER_API_KEY,
+                        'claude-coder': process.env.ANTHROPIC_API_KEY,
                     };
 
                     const envKey = envKeyMap[this.config.aiProvider.type] || process.env.GEMINI_API_KEY;

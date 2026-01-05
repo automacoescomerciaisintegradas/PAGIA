@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync } from 'fs'
 import { join } from 'path';
 import os from 'os';
 
-import { installTemplate } from '../src/commands/plan';
+import { installTemplate } from '../apps/backend/src/commands/plan';
 
 describe('plan install-template (markdown)', () => {
   let tmp: string;

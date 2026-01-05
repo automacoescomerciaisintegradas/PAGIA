@@ -119,6 +119,14 @@
             "status": "pending",
             "priority": "medium",
             "agent": "Developer"
+        },
+        {
+            "id": "T-016",
+            "name": "Corrigir caminhos de importação nos testes e mocking do Inquirer após refatoração.",
+            "spec": "005-refactor-fix",
+            "status": "completed",
+            "priority": "high",
+            "agent": "Developer"
         }
     ]
 }

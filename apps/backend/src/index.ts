@@ -30,6 +30,13 @@ import { doctorCommand } from './commands/doctor.js';
 import { pluginCommand } from './commands/plugin.js';
 import { skillCommand } from './commands/skill.js';
 import { workflowCommand } from './commands/workflow.js';
+import { authCommand } from './commands/auth.js';
+import { routerCommand } from './commands/router.js';
+import { uiCommand } from './commands/ui.js';
+import { chatCommand, startDefaultREPL } from './commands/chat.js';
+import chalk from 'chalk';
+import { webCommand } from './commands/web.js';
+import { serveLlmCommand } from './commands/serve-llm.js';
 
 // Load environment variables
 config();
@@ -77,6 +84,7 @@ function showWelcome(): void {
 
     logger.tips([
         'Faça perguntas, edite arquivos ou execute comandos.',
+        'Use \`pagia auth login\` para configurar provedores de IA.',
         'Use \`pagia agent run analyst\` para iniciar uma análise de projeto.',
         'Crie um projeto com \`pagia init\` e gerencie tarefas com \`pagia plan\`.',
         'Digite \`pagia help\` para mais informações.',
@@ -90,6 +98,11 @@ program
     .description('PAGIA - Plano de Ação de Gestão e Implementação com IA')
     .version(VERSION)
     .hook('preAction', (thisCommand) => {
+        // Skip welcome for commands that have their own interface
+        const skipWelcome = ['chat', 'web', 'serve-llm', 'mcp'];
+        if (skipWelcome.includes(thisCommand.name())) {
+            return;
+        }
         // Only show welcome if it's the main command or agent run/list
         if (thisCommand.name() === 'pagia' || ['run', 'list', 'agent'].includes(thisCommand.name())) {
             showWelcome();
@@ -101,6 +114,12 @@ program.addCommand(initCommand);
 program.addCommand(installCommand);
 program.addCommand(statusCommand);
 program.addCommand(configCommand);
+program.addCommand(authCommand);
+program.addCommand(routerCommand);
+program.addCommand(uiCommand);
+program.addCommand(chatCommand);
+program.addCommand(webCommand);
+program.addCommand(serveLlmCommand);
 
 // Register plan commands
 program.addCommand(planCommand);
@@ -149,13 +168,20 @@ try {
     // ignore — registro não crítico
 }
 
-// Parse arguments
-program.parse(process.argv);
+// Main Execution
+const args = process.argv.slice(2);
 
-// If no command provided, show help
-if (!process.argv.slice(2).length) {
-    showWelcome();
-    program.outputHelp();
+if (args.length === 0) {
+    // If no command provided, start interactive REPL mode
+    // We use a small timeout to ensure Commander or other initialization doesn't interfere
+    setTimeout(() => {
+        startDefaultREPL().catch((err) => {
+            console.error(chalk.red('\n❌ Erro fatal ao iniciar o modo interativo:'));
+            console.error(chalk.yellow(err.stack || err.message || err));
+            process.exit(1);
+        });
+    }, 100);
+} else {
+    // Parse commands
+    program.parse(process.argv);
 }
-
-

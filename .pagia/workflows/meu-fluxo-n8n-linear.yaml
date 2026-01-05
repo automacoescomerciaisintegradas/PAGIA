@@ -1,0 +1,96 @@
+id: meu-fluxo-n8n-linear
+name: meu-fluxo-n8n-linear
+description: ""
+config:
+  maxConcurrency: 5
+  timeout: 300000
+  failFast: false
+nodes:
+  - id: loop-over-items1
+    name: Loop Over Items1
+    agentId: analyst
+  - id: pegar-lista-de-leads
+    name: Pegar lista de leads
+    agentId: analyst
+  - id: pegar-mensagem
+    name: Pegar mensagem
+    agentId: analyst
+  - id: delay
+    name: Delay
+    agentId: analyst
+  - id: verificar-status
+    name: Verificar Status
+    agentId: analyst
+  - id: enviar-mensagem-1
+    name: Enviar Mensagem 1
+    agentId: analyst
+  - id: dados
+    name: Dados
+    agentId: analyst
+  - id: enviar-mensagem-2
+    name: Enviar Mensagem 2
+    agentId: analyst
+  - id: atualizar-status
+    name: Atualizar Status
+    agentId: analyst
+  - id: atualizar-status1
+    name: Atualizar Status1
+    agentId: analyst
+  - id: atualizar-active
+    name: Atualizar Active
+    agentId: analyst
+  - id: gerar-n-mero
+    name: Gerar número
+    agentId: developer
+  - id: gerar-n-mero1
+    name: Gerar número1
+    agentId: developer
+  - id: switch
+    name: Switch
+    agentId: analyst
+  - id: openai
+    name: OpenAI
+    agentId: analyst
+  - id: webhook
+    name: Webhook
+    agentId: planner
+edges:
+  - from: __start__
+    to: webhook
+  - from: loop-over-items1
+    to: atualizar-status1
+  - from: loop-over-items1
+    to: verificar-status
+  - from: delay
+    to: openai
+  - from: verificar-status
+    to: gerar-n-mero
+  - from: pegar-lista-de-leads
+    to: loop-over-items1
+  - from: pegar-mensagem
+    to: atualizar-status
+  - from: dados
+    to: pegar-mensagem
+  - from: enviar-mensagem-1
+    to: atualizar-active
+  - from: enviar-mensagem-2
+    to: atualizar-active
+  - from: atualizar-status
+    to: pegar-lista-de-leads
+  - from: atualizar-active
+    to: __end__
+  - from: gerar-n-mero
+    to: delay
+  - from: gerar-n-mero1
+    to: switch
+  - from: switch
+    to: enviar-mensagem-1
+  - from: switch
+    to: enviar-mensagem-2
+  - from: openai
+    to: gerar-n-mero1
+  - from: webhook
+    to: dados
+  - from: atualizar-status1
+    to: __end__
+updatedAt: 2026-01-03T17:09:49.118Z

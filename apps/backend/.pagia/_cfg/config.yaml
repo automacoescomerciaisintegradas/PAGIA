@@ -5,8 +5,8 @@ userName: developer
 debug: false
 aiProvider:
   type: ollama
-  apiKey: ""
-  model: llama3
+  apiKey: qJvznYXlSjZTkY0lpHiCEROFSSst45qJr1WJ6zRdCrgU-ZjIXEzJt2bct8oqujWsY0rBm-xa3IevShNeJxgcGg
+  model: qwen3-coder-plus
   temperature: 0.7
   maxTokens: 8192
 modules:

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock do createAIService para controlar o retorno do serviço de IA
-vi.mock('../src/core/ai-service', () => {
+vi.mock('../apps/backend/src/core/ai-service', () => {
   return {
     createAIService: () => {
       return {
@@ -19,7 +19,7 @@ vi.mock('../src/core/ai-service', () => {
 describe('ModuleCreationMasterAgent (integração mínima)', () => {
   it('deve chamar o serviço de IA e retornar output padronizado', async () => {
     // Import dinâmico para garantir que o mock seja aplicado antes da importação
-    const { ModuleCreationMasterAgent } = await import('../src/agents/specialized/module-creation-master-agent');
+    const { ModuleCreationMasterAgent } = await import('../apps/backend/src/agents/specialized/module-creation-master-agent');
 
     const agent = new ModuleCreationMasterAgent();
 

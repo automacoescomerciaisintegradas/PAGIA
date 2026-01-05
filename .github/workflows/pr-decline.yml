@@ -1,0 +1,135 @@
+name: PR manual decline (label or button)
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to act on"
+        required: true
+      reason:
+        description: "Reason to use"
+        required: true
+        type: choice
+        options: [Out of scope, Low info, Duplicate, Spam]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+env:
+  REPO: ${{ github.repository }}
+  IDEAS_URL: https://github.com/automacoescomerciaisintegradas/PAGIA/discussions/categories/ideas
+  CONTRIBUTING_URL: https://github.com/automacoescomerciaisintegradas/PAGIA/blob/main/.github/CONTRIBUTING.md
+
+jobs:
+  decline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine PR number and reason (from label or dispatch)
+        id: vars
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let prNumber = "";
+            let reason = "";
+            let skip = false;
+
+            if (context.eventName === "pull_request_target" && context.payload.action === "labeled") {
+              prNumber = String(context.payload.pull_request.number);
+              const label = (context.payload.label?.name || "").trim();
+
+              const map = {
+                "Close PR: Out of scope": "Out of scope",
+                "Close PR: Low info": "Low info",
+                "Close PR: Duplicate": "Duplicate",
+                "Close PR: Spam": "Spam",
+              };
+
+              if (map[label]) {
+                reason = map[label];
+              } else {
+                skip = true; // not one of your decline labels
+              }
+            }
+
+            if (context.eventName === "workflow_dispatch") {
+              prNumber = (core.getInput("pr_number") || "").trim();
+              reason   = (core.getInput("reason") || "").trim();
+            }
+
+            core.setOutput("skip", skip ? "true" : "false");
+            core.setOutput("pr", prNumber);
+            core.setOutput("reason", reason);
+
+      - name: Stop if not a decline event
+        if: steps.vars.outputs.skip == 'true' || steps.vars.outputs.pr == '' || steps.vars.outputs.reason == ''
+        run: echo "No decline action to run."
+
+      - name: Build canned message
+        if: steps.vars.outputs.skip != 'true' && steps.vars.outputs.pr != '' && steps.vars.outputs.reason != ''
+        id: msg
+        uses: actions/github-script@v7
+        env:
+          REASON: ${{ steps.vars.outputs.reason }}
+          IDEAS_URL: ${{ env.IDEAS_URL }}
+          CONTRIBUTING_URL: ${{ env.CONTRIBUTING_URL }}
+        with:
+          script: |
+            const reason = process.env.REASON;
+            const IDEAS = process.env.IDEAS_URL;
+            const CONTRIB = process.env.CONTRIBUTING_URL;
+
+            let body = "";
+            switch (reason) {
+              case "Out of scope":
+                body =
+                  "Obrigado pelo PR! Após revisão, essa mudança não está no roadmap atual do PAGIA. " +
+                  "Mantemos o core focado para gerenciar manutenção de longo prazo e compatibilidade.\n\n" +
+                  `Se você gostaria de continuar a conversa, por favor inicie uma proposta em **Ideas**: ${IDEAS}\n` +
+                  "Se você publicar um fork/plugin/exemplo, sinta-se à vontade para compartilhar em **Show & Tell** para que outros possam experimentar.\n\n" +
+                  "_Fechando para manter o backlog focado._";
+                break;
+
+              case "Low info":
+                body =
+                  "Obrigado pelo PR! Estão faltando detalhes necessários para revisão.\n\n" +
+                  "Por favor atualize o PR com:\n" +
+                  "• **Resumo**\n" +
+                  "• **Checklist**\n" +
+                  "• **Passos documentados para testar**\n\n" +
+                  `Diretrizes: ${CONTRIB}\n\n` +
+                  "Uma vez atualizado, você pode abrir um novo PR ou pedir a um mantenedor para reabrir.";
+                break;
+
+              case "Duplicate":
+                body =
+                  "Obrigado pelo PR! Isso parece duplicar trabalho ou discussão existente. " +
+                  "Vamos consolidar na thread/PR canônica para reduzir confusão.\n\n" +
+                  "_Fechando este para manter as coisas organizadas._";
+                break;
+
+              case "Spam":
+                body = "Fechando este PR. Não atende à nossa política de contribuição.";
+                break;
+
+              default:
+                body = "Obrigado pelo PR! Fechando após revisão do mantenedor.";
+            }
+
+            core.setOutput("body", body);
+
+      - name: Comment and close PR
+        if: steps.vars.outputs.skip != 'true' && steps.vars.outputs.pr != '' && steps.msg.outputs.body != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ env.REPO }}
+        run: |
+          PR="${{ steps.vars.outputs.pr }}"
+          BODY="${{ steps.msg.outputs.body }}"
+
+          gh pr comment "$PR" --repo "$REPO" --body "$BODY"
+          gh pr close   "$PR" --repo "$REPO"
