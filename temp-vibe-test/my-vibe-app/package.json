@@ -1,0 +1,23 @@
+{
+  "name": "temp-vibe-test/my-vibe-app",
+  "version": "1.0.0",
+  "description": "AI Vibe Full-Stack App powered by PAGIA & Cloudflare VibeSDK",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "hono": "^4.2.4",
+    "drizzle-orm": "^0.30.8",
+    "@cloudflare/workers-types": "^4.20240405.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.47.0",
+    "drizzle-kit": "^0.20.14",
+    "typescript": "^5.4.4"
+  }
+}

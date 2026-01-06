@@ -12,10 +12,11 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
 
-// Carregar .env da raiz do projeto PAGIA
-config({ path: '../../.env' });
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Carregar .env da raiz do projeto PAGIA com caminho absoluto
+config({ path: path.resolve(__dirname, '../../../.env') });
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);

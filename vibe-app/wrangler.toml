@@ -1,0 +1,3 @@
+# VibeSDK Config
+name = "vibe-app"
+main = "src/index.ts"

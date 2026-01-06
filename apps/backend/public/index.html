@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAGIA - Plano de Ação de Gestão e Implementação com IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+    <link rel="stylesheet" href="/css/web-ui.css">
+
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">P</div>
+            <div>
+                <div class="logo-text">PAGIA</div>
+                <div class="logo-subtitle">Automações Comerciais Integradas</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <select id="providerSelect" class="provider-select">
+                <option value="">Carregando...</option>
+            </select>
+            <a href="https://github.com/automacoescomerciaisintegradas/PAGIA" target="_blank" class="github-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                GitHub
+            </a>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Conectado</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Menu</div>
+                <div id="menu-chat" class="sidebar-item active" onclick="showView('chat')">
+                    <span class="sidebar-item-icon">💬</span>
+                    <span>Chat</span>
+                </div>
+                <div id="menu-maestro" class="sidebar-item" onclick="showView('maestro')">
+                    <span class="sidebar-item-icon">🛰️</span>
+                    <span>Maestro (Vibe)</span>
+                </div>
+                <div class="sidebar-item" onclick="showDocs()">
+                    <span class="sidebar-item-icon">📚</span>
+                    <span>Documentação</span>
+                </div>
+                <div class="sidebar-item" onclick="showProviders()">
+                    <span class="sidebar-item-icon">⚙️</span>
+                    <span>Provedores</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Instalação Rápida</div>
+                <div class="info-card">
+                    <div class="info-card-title">📦 Via NPM</div>
+                    <div class="info-card-content">
+                        <code>npm install -g pagia</code>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-title">📂 Via Git</div>
+                    <div class="info-card-content">
+                        <code>git clone https://github.com/automacoescomerciaisintegradas/pagia.git</code><br><br>
+                        <code>cd pagia && npm install</code><br>
+                        <code>npm run build && npm link</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Contato</div>
+                <div class="info-card">
+                    <div class="info-card-content">
+                        📧 contato@automacoescomerciais.com.br<br>
+                        © 2025 Automações Comerciais Integradas
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="chat-area">
+            <div id="chatContainer" class="chat-container">
+                <div class="welcome">
+                    <div class="welcome-icon">🤖</div>
+                    <h1>Bem-vindo ao PAGIA</h1>
+                    <p>Plano de Ação de Gestão e Implementação com IA.<br>
+                    Seu assistente inteligente para desenvolvimento e gestão de projetos.</p>
+                    
+                    <div class="welcome-features">
+                        <div class="feature-card">
+                            <div class="feature-icon">💻</div>
+                            <div class="feature-title">Geração de Código</div>
+                            <div class="feature-desc">Crie componentes, funções e projetos completos</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📋</div>
+                            <div class="feature-title">Gestão de Planos</div>
+                            <div class="feature-desc">Organize tarefas e acompanhe o progresso</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <div class="feature-title">Multi-Provedor</div>
+                            <div class="feature-desc">Gemini, OpenAI, Groq, Olama e mais</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🛠️</div>
+                            <div class="feature-title">Agentes de IA</div>
+                            <div class="feature-desc">Analista, Desenvolvedor, Arquiteto</div>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestions">
+                        <button class="suggestion" onclick="sendSuggestion('Crie um componente React com TypeScript')">Componente React</button>
+                        <button class="suggestion" onclick="sendSuggestion('Como configurar o PAGIA com Ollama local?')">Configurar Ollama</button>
+                        <button class="suggestion" onclick="sendSuggestion('Analise este projeto e sugira melhorias')">Analisar projeto</button>
+                        <button class="suggestion" onclick="sendSuggestion('Explique a arquitetura do PAGIA')">Arquitetura PAGIA</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        id="messageInput" 
+                        class="input-textarea" 
+                        placeholder="Digite sua mensagem..." 
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button id="sendButton" class="send-button" onclick="sendMessage()">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="maestroView" class="maestro-view">
+                <div class="maestro-header">
+                    <span class="maestro-badge">Satellite System v1.0</span>
+                    <h1 class="maestro-title">Maestro Vibe Programming</h1>
+                    <p style="color: var(--text-secondary)">Descreva sua aplicação e deixe o PAGIA orquestrar o desenvolvimento via Cloudflare VibeSDK.</p>
+                </div>
+
+                <div class="vibe-card">
+                    <div class="vibe-input-group">
+                        <label class="vibe-label">Qual a "Vibe" do seu aplicativo?</label>
+                        <textarea id="vibeDescription" class="vibe-textarea" placeholder="Ex: Um dashboard SaaS para métricas de e-commerce com visual dark mode e gráficos real-time..."></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="vibe-input-group">
+                            <label class="vibe-label">Nome do Projeto</label>
+                            <input type="text" id="vibeProjectName" class="vibe-input" placeholder="meu-app-vibe">
+                        </div>
+                        <div class="vibe-input-group">
+                            <label class="vibe-label">Stack (Auto-detectada)</label>
+                            <input type="text" class="vibe-input" value="Cloudflare Workers (Hono + D1)" disabled>
+                        </div>
+                    </div>
+
+                    <button id="vibeGenerateBtn" class="vibe-button" onclick="generateVibe()">
+                        <span id="vibeBtnIcon">🛰️</span>
+                        <span id="vibeBtnText">Lançar Orquestração AI</span>
+                    </button>
+
+                    <div id="vibeStatusPanel" class="vibe-status">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <span style="font-weight: 600; font-size: 0.85rem;">Status do Processamento</span>
+                            <span id="vibeMainStatus" class="log-msg info">Inativo</span>
+                        </div>
+                        <div id="vibeLog" class="status-log">
+                            <!-- Logs will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <div class="feature-title">Segurança Nativa</div>
+                        <div class="feature-desc">Credenciais sincronizadas automaticamente.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Deploy Instantâneo</div>
+                        <div class="feature-desc">Pronto para Cloudflare Workers.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💎</div>
+                        <div class="feature-title">Padrão Premium</div>
+                        <div class="feature-desc">Código estruturado e escalável.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <footer class="footer">
+        Desenvolvido por <a href="https://github.com/automacoescomerciaisintegradas" target="_blank">Automações Comerciais Integradas</a> | 
+        <a href="https://github.com/automacoescomerciaisintegradas/PAGIA" target="_blank">GitHub</a> | 
+        © 2025
+    </footer>
+    
+    <script src="/js/web-ui.js"></script>
+
+</body>
+</html>

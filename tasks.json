@@ -4,7 +4,7 @@
             "id": "T-001",
             "name": "Configuração do boilerplate VibeSDK (Cloudflare Workers + D1/Vectorize).",
             "spec": "003-vibesdk",
-            "status": "pending",
+            "status": "completed",
             "priority": "medium",
             "agent": "Developer"
         },
@@ -28,7 +28,7 @@
             "id": "T-004",
             "name": "Integração com modelos de linguagem via Cloudflare AI.",
             "spec": "003-vibesdk",
-            "status": "pending",
+            "status": "completed",
             "priority": "medium",
             "agent": "Developer"
         },

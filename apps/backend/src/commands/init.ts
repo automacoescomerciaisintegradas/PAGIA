@@ -23,6 +23,8 @@ import {
 } from '../core/paths.js';
 import { logger } from '../utils/logger.js';
 import type { AIProviderType, ModuleConfig } from '../types/index.js';
+import { generateVibeProject } from '../utils/vibe-generator.js';
+import { startDefaultREPL } from './chat.js';
 
 export const initCommand = new Command('init')
     .description('Inicializar PAGIA ou geradores especializados')
@@ -31,53 +33,26 @@ export const initCommand = new Command('init')
         await runMainInit(options);
     });
 
+
+
 initCommand.command('vibe')
     .description('Inicializar um novo projeto AI Vibe full-stack (Cloudflare VibeSDK)')
-    .action(async () => {
-        logger.info('🛰️  Iniciando gerador Full-Stack AI Vibe (Cloudflare VibeSDK)...');
+    .option('-n, --name <name>', 'Nome do projeto', 'vibe-app')
+    .action(async (cmdOptions) => {
+        const projectName = cmdOptions.name;
+        logger.info(`🛰️  Iniciando gerador Full-Stack AI Vibe (${chalk.cyan('Cloudflare VibeSDK')})...`);
         const spinner = logger.spin('Configurando boilerplate Premium...');
 
         try {
-            const projectRoot = process.cwd();
-            const vibeDir = join(projectRoot, 'vibe-app');
+            await generateVibeProject({ projectName });
 
-            if (!existsSync(vibeDir)) mkdirSync(vibeDir, { recursive: true });
-
-            // Injeção Inteligente de Segredos
-            const configManager = getConfigManager();
-            const config = configManager.load();
-            let envContent = '';
-
-            if (config && config.aiProvider) {
-                const provider = config.aiProvider.type.toUpperCase();
-                const apiKey = config.aiProvider.apiKey;
-                envContent = `${provider}_API_KEY=${apiKey}\nCLOUDFLARE_ACCOUNT_ID=${process.env.CLOUDFLARE_ACCOUNT_ID || ''}\n`;
-                logger.info(`🔑 Segredos injetados para o provedor: ${chalk.cyan(provider)}`);
-            }
-
-            // Gerar arquivos do boilerplate
-            writeFileSync(join(vibeDir, '.env'), envContent, 'utf-8');
-            writeFileSync(join(vibeDir, 'wrangler.toml'), '# VibeSDK Config\nname = "vibe-app"\nmain = "src/index.ts"\n', 'utf-8');
-            writeFileSync(join(vibeDir, 'package.json'), JSON.stringify({
-                name: "vibe-app",
-                version: "1.0.0",
-                scripts: {
-                    "dev": "wrangler dev",
-                    "deploy": "wrangler deploy"
-                },
-                dependencies: {
-                    "@cloudflare/vibesdk": "latest",
-                    "hono": "^4.0.0"
-                }
-            }, null, 2), 'utf-8');
-
-            spinner.succeed(`Projeto Full-Stack VibeSDK gerado com sucesso em ./${chalk.bold('vibe-app')}!`);
+            spinner.succeed(`Projeto Full-Stack VibeSDK gerado com sucesso em ./${chalk.bold(projectName)}!`);
             logger.list([
                 'As chaves de API foram sincronizadas automaticamente do Maestro.',
-                'Configuração do Cloudflare Workers pronta para deploy.',
-                'Arquitetura Hono + VibeSDK configurada.'
+                'Configuração do Cloudflare Workers pronta: Hono + D1 + Vectorize + AI.',
+                'Arquitetura de "Vibe Programming" pronta para o futuro.'
             ]);
-            logger.info(`🚀 Para começar: ${chalk.cyan('cd vibe-app && npm install && npm run dev')}`);
+            logger.info(`🚀 Para começar: ${chalk.cyan(`cd ${projectName} && npm install && npm run dev`)}`);
         } catch (err) {
             spinner.fail('Erro ao gerar projeto VibeSDK');
             logger.error(err instanceof Error ? err.message : String(err));
@@ -123,12 +98,19 @@ async function runMainInit(options: any) {
                     name: 'action',
                     message: chalk.yellow('PAGIA já está detectado neste projeto.'),
                     choices: [
+                        { name: 'Entrar no Modo Interativo', value: 'interactive' },
                         { name: 'Atualizar configuração existente', value: 'update' },
                         { name: 'Reinstalar (Sobrescrever tudo)', value: 'overwrite' },
-                        { name: 'Cancelar', value: 'cancel' },
+                        { name: 'Sair', value: 'cancel' },
                     ],
                 },
             ]);
+
+            if (action === 'interactive') {
+                logger.info('Entrando no modo interativo...');
+                await startDefaultREPL();
+                return;
+            }
 
             if (action === 'cancel') {
                 logger.info('Operação cancelada.');
@@ -237,6 +219,10 @@ async function runMainInit(options: any) {
 
         // --- 4. Final Summary ---
         showFinalSummary(finalConfig);
+
+        // Enter Interactive Mode
+        logger.info('Entrando no modo interativo...');
+        await startDefaultREPL();
 
     } catch (error) {
         spinner.fail('Falha na inicialização');

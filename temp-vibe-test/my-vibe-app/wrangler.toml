@@ -1,0 +1,18 @@
+name = "vibe-app"
+main = "src/index.ts"
+compatibility_date = "2024-04-01"
+
+[vars]
+# Add your variables here
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vibe-db"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+
+[[vectorize]]
+binding = "VECTOR_INDEX"
+index_name = "vibe-index"
+
+[ai]
+binding = "AI"

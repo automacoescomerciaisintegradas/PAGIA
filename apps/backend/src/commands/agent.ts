@@ -10,6 +10,7 @@ import { join } from 'path';
 import inquirer from 'inquirer';
 import { getConfigManager } from '../core/config-manager.js';
 import { createAIService } from '../core/ai-service.js';
+import { getRouterManager } from '../core/router-manager.js';
 import { logger } from '../utils/logger.js';
 import { setupBMADAgents, BMAD_AGENTS } from '../scripts/setup-bmad-agents.js';
 import { pluginManager } from '../core/plugin-system.js';
@@ -400,15 +401,94 @@ agentCommand
                 await pluginManager.loadAll();
                 await pluginManager.executeHooks('PreToolUse', { content: prompt, agent: name });
 
-                // Usar config do projeto se disponível, senão usar .env
-                const aiProviderConfig = config?.aiProvider || getDefaultAIProvider();
+                // Determine routing task type based on agent name/role
+                let taskType: 'code' | 'think' | 'default' = 'default';
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes('dev') || lowerName.includes('code') || lowerName.includes('qa') || lowerName.includes('implement')) {
+                    taskType = 'code';
+                } else if (lowerName.includes('analyst') || lowerName.includes('architect') || lowerName.includes('think') || lowerName.includes('plan')) {
+                    taskType = 'think';
+                }
+
+                // Router Integration
+                const router = getRouterManager();
+                await router.initialize();
+
+                const route = await router.route({
+                    taskType,
+                    messages: [{ role: 'user', content: prompt }]
+                });
+
+                // Inject Base URL into ENV for AIService to pick up custom URLs
+                if (route.apiBaseUrl) {
+                    process.env[`${route.provider.toUpperCase()}_BASE_URL`] = route.apiBaseUrl;
+                }
+
+                const aiProviderConfig = {
+                    type: route.provider as any,
+                    apiKey: route.apiKey,
+                    model: route.model,
+                    temperature: 0.7,
+                };
+
+                // Inject Tool Use Instructions
+                const toolInstructions = `
+## Available Capabilities (Tools)
+You can interacting with the file system. To create or overwrite a file, output strictly the following XML format:
+
+<tool_use>
+  <name>write_file</name>
+  <parameters>
+    <path>filename.ext</path>
+    <content>
+Your file content here...
+    </content>
+  </parameters>
+</tool_use>
+
+You can perform multiple tool calls in a single response if needed.
+`;
+                const fullInstructions = instructions + '\n' + toolInstructions;
+
                 const aiService = createAIService(aiProviderConfig);
-                const response = await aiService.generate(prompt, instructions);
+                const response = await aiService.generate(prompt, fullInstructions);
+
+                // Tool Execution Logic
+                const content = response.content;
+                const toolRegex = /<tool_use>([\s\S]*?)<\/tool_use>/g;
+                let match;
+                let processedContent = content;
+
+                while ((match = toolRegex.exec(content)) !== null) {
+                    const toolBlock = match[1];
+                    const nameMatch = toolBlock.match(/<name>(.*?)<\/name>/);
+                    const pathMatch = toolBlock.match(/<path>(.*?)<\/path>/);
+                    const contentMatch = toolBlock.match(/<content>([\s\S]*?)<\/content>/);
+
+                    if (nameMatch && nameMatch[1] === 'write_file' && pathMatch && contentMatch) {
+                        const filePath = pathMatch[1].trim();
+                        const fileContent = contentMatch[1].trim(); // Careful with whitespace in actual code
+
+                        // Sanitize path to current directory for safety
+                        const safePath = join(process.cwd(), filePath.replace(/^(\.\.(\/|\\|$))+/, ''));
+
+                        // Ensure dirs exist
+                        const dir = safePath.substring(0, safePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/'));
+                        if (dir && !existsSync(dir)) {
+                            mkdirSync(dir, { recursive: true });
+                        }
+
+                        writeFileSync(safePath, fileContent, 'utf-8');
+                        logger.success(`Arquivo criado via Tool Use: ${filePath}`);
+
+                        // Remove the tool block from display to keep it clean (optional, keeping it shows the action)
+                    }
+                }
 
                 spinner.stop();
 
                 // Premium output box
-                logger.box(response.content, {
+                logger.box(processedContent, {
                     title: `🤖 ${name}`,
                     borderColor: 'cyan',
                     padding: 1

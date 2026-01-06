@@ -77,6 +77,12 @@ const PROVIDER_CONFIGS: Record<string, ProviderEndpoint> = {
         modelEnv: 'DEEPSEEK_MODEL',
         defaultModel: 'deepseek-chat',
     },
+    'deepseek-beta': {
+        baseUrl: 'https://api.deepseek.com/beta',
+        apiKeyEnv: 'DEEPSEEK_API_KEY',
+        modelEnv: 'DEEPSEEK_MODEL',
+        defaultModel: 'deepseek-coder',
+    },
     mistral: {
         baseUrl: 'https://api.mistral.ai/v1',
         apiKeyEnv: 'MISTRAL_API_KEY',
@@ -113,6 +119,13 @@ const PROVIDER_CONFIGS: Record<string, ProviderEndpoint> = {
         modelEnv: 'CLAUDE_CODER_MODEL',
         defaultModel: 'claude-3-5-sonnet-20241022',
     },
+    nvidia: {
+        baseUrl: 'https://integrate.api.nvidia.com/v1',
+        apiKeyEnv: 'NVIDIA_API_KEY',
+        modelEnv: 'NVIDIA_MODEL',
+        defaultModel: 'nvidia/llama-3.1-nemotron-70b-instruct',
+    },
+
 };
 
 export class AIService {
@@ -144,10 +157,12 @@ export class AIService {
             case 'openai':
             case 'groq':
             case 'deepseek':
+            case 'deepseek-beta':
             case 'mistral':
             case 'openrouter':
             case 'qwen':
             case 'coder':
+            case 'nvidia':
                 this.initOpenAICompatibleClient();
                 break;
             case 'ollama':
@@ -300,10 +315,12 @@ export class AIService {
                 case 'openai':
                 case 'groq':
                 case 'deepseek':
+                case 'deepseek-beta':
                 case 'mistral':
                 case 'openrouter':
                 case 'qwen':
                 case 'coder':
+                case 'nvidia':
                 case 'ollama':
                     return await this.chatOpenAICompatible(messages);
                 case 'anthropic':
@@ -578,12 +595,14 @@ export class AIService {
             groq: 'Groq',
             ollama: 'Ollama (Local)',
             deepseek: 'DeepSeek',
+            'deepseek-beta': 'DeepSeek Beta',
             mistral: 'Mistral AI',
             openrouter: 'OpenRouter',
             local: 'Local Model',
             qwen: 'Alibaba Qwen',
             coder: 'AI Coder',
             'claude-coder': 'Claude Coder',
+            nvidia: 'NVIDIA NIM',
         };
 
         return {
@@ -607,12 +626,14 @@ function getApiKeyForProvider(type: AIProviderType, configApiKey?: string): stri
         groq: 'GROQ_API_KEY',
         ollama: '', // Ollama não precisa de API key
         deepseek: 'DEEPSEEK_API_KEY',
+        'deepseek-beta': 'DEEPSEEK_API_KEY',
         mistral: 'MISTRAL_API_KEY',
         openrouter: 'OPENROUTER_API_KEY',
         local: '',
         qwen: 'QWEN_API_KEY',
         coder: 'CODER_API_KEY',
         'claude-coder': 'ANTHROPIC_API_KEY',
+        nvidia: 'NVIDIA_API_KEY',
     };
 
     const envVar = envMapping[type];
@@ -632,12 +653,14 @@ function getDefaultModelForProvider(type: AIProviderType, configModel?: string):
         groq: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
         ollama: process.env.OLLAMA_MODEL || 'llama3.2',
         deepseek: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+        'deepseek-beta': process.env.DEEPSEEK_MODEL || 'deepseek-coder',
         mistral: process.env.MISTRAL_MODEL || 'mistral-large-latest',
         openrouter: process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4',
         local: 'local-model',
         qwen: process.env.QWEN_MODEL || 'qwen-max',
         coder: process.env.CODER_MODEL || 'deepseek-coder-v2',
         'claude-coder': process.env.CLAUDE_CODER_MODEL || 'claude-3-5-sonnet-20241022',
+        nvidia: process.env.NVIDIA_MODEL || 'nvidia/llama-3.1-nemotron-70b-instruct',
     };
 
     return defaults[type];
@@ -696,6 +719,7 @@ export function getAvailableProviders(): Array<{ type: AIProviderType; name: str
         { type: 'qwen', name: 'Alibaba Qwen', description: 'Modelos Qwen (Max, Plus)', requiresApiKey: true },
         { type: 'coder', name: 'AI Coder', description: 'Modelos especializados em codificação', requiresApiKey: true },
         { type: 'claude-coder', name: 'Claude Coder', description: 'Claude especializado em codificação', requiresApiKey: true },
+        { type: 'nvidia', name: 'NVIDIA', description: 'NVIDIA NIM Microservices', requiresApiKey: true },
     ];
 }
 
