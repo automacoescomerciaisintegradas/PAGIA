@@ -1,0 +1,14 @@
+nome: Otimizador de Banco de Dados
+descricao: Subagente responsável por otimizar o desempenho do banco de dados.
+ferramentas:
+  - Analisador de Desempenho
+  - Otimizador de Consultas
+  - Ferramenta de Indexação
+modelo_de_IA: Otimização de Desempenho
+habilidades:
+  - Análise de Consultas
+  - Otimização de Índices
+  - Manutenção de Estatísticas
+permissões:
+  modo: restricted
+  escopo: banco_de_dados

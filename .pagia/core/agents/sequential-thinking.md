@@ -45,4 +45,4 @@ Use este m√©todo para garantir que problemas complexos sejam resolvidos com a m√
 - `/branch` - Explorar alternativa
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

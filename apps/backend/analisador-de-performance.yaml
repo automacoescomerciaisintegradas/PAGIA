@@ -1,0 +1,12 @@
+nome: Analisador de Performance
+descricao: Subagente responsável por analisar e relatar o desempenho do sistema.
+ferramentas:
+  - coletor-de-metricas
+  - processador-de-dados
+modelo_de_IA: Analise_Predicitiva
+habilidades:
+  - coletar_dados
+  - processar_dados
+  - gerar_relatorios
+permissao: default
+escopo_de_acesso: sistema

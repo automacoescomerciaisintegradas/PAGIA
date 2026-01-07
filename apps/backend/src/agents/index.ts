@@ -34,4 +34,9 @@ export { PAGIANetwork, pagiaNetwork } from './inngest-network.js';
 
 export { ProductBriefAgent, productBriefAgent } from './specialized/product-brief-agent.js';
 export { SpecWriterAgent, specWriterAgent } from './specialized/spec-writer-agent.js';
+export { CodeReviewerAgent, codeReviewerAgent } from './specialized/code-reviewer-agent.js';
+export { SubagentManagerAgent, subagentManagerAgent } from './specialized/subagent-manager-agent.js';
+export { DebuggerAgent, debuggerAgent } from './specialized/debugger-agent.js';
+export { DataScientistAgent, dataScientistAgent } from './specialized/data-scientist-agent.js';
+export { TemplateManagerAgent, templateManagerAgent } from './specialized/template-manager-agent.js';
 

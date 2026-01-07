@@ -44,4 +44,4 @@ Use diagramas mermaid quando possível.
 - `/diagram` - Criar diagrama
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

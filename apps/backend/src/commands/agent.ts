@@ -762,7 +762,7 @@ ${agent.instructions}
 - \`/execute\` - Executar tarefa
 
 ---
-*Agente criado em ${new Date().toISOString()}*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |
 `;
 }
 

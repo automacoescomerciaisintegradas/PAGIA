@@ -95,4 +95,4 @@ Como Especialista em Especificações Técnicas, você deve:
 - `/validate` - Validar especificação técnica
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

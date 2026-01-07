@@ -40,4 +40,4 @@ Como Product Owner, você deve:
 - `/backlog` - Priorizar backlog
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

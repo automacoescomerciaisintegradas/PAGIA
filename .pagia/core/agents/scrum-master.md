@@ -42,4 +42,4 @@ Foque em remover impedimentos.
 - `/retro` - Retrospectiva
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

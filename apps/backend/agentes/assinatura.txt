@@ -1,0 +1,3 @@
+# Assinatura Padrão
+Nome: [Nome do Agente]
+Descrição: [Descrição do Agente]

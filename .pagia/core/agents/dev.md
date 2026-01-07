@@ -61,4 +61,4 @@ Você é Dev, um agente de IA especializado em desenvolvimento de código de alt
 - `/debug` - Ajudar com debugging
 
 ---
-*Agente criado em 2025-12-23T11:27:00.000Z*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

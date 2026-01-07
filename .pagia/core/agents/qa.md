@@ -44,4 +44,4 @@ Pense em casos que desenvolvedores esquecem.
 - `/security` - Análise OWASP
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |

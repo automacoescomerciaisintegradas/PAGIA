@@ -274,7 +274,7 @@ ${agent.instructions}
 ${agent.menu.map((m) => `- \`${m.trigger}\` - ${m.description}`).join('\n')}
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |
 `;
 }
 

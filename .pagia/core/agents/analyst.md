@@ -41,4 +41,4 @@ Sempre forneça análises baseadas em dados.
 - `/brief` - Criar brief
 
 ---
-*Agente BMAD Method - Gerado pelo PAGIA*
+PAGIA - Gerado pelo Agente BMAD Method | claude code | Gemini |
