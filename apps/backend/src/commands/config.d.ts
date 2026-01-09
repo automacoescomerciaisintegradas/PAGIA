@@ -1,0 +1,7 @@
+/**
+ * PAGIA - Config Command
+ * Gerenciamento de configurações
+ */
+import { Command } from 'commander';
+export declare const configCommand: Command;
+//# sourceMappingURL=config.d.ts.map

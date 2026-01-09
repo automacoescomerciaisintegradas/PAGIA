@@ -1,0 +1,20 @@
+{
+  "name": "ralph-wiggum",
+  "version": "1.0.0",
+  "description": "A fun plugin inspired by Ralph Wiggum from The Simpsons",
+  "author": "PAGIA Community",
+  "commands": [
+    {
+      "name": "/ralph-say",
+      "description": "Make Ralph say something random",
+      "handler": "./commands/ralph-say.js"
+    }
+  ],
+  "agents": [
+    {
+      "name": "ralph-wiggum-agent",
+      "file": "./agents/ralph-agent.md"
+    }
+  ],
+  "hooks": []
+}

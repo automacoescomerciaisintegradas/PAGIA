@@ -28,6 +28,10 @@ export type CredentialProvider =
     | 'cohere'
     | 'custom'
     | 'qwen'
+    | 'nvidia'
+    | 'together'
+    | 'replicate'
+    | 'zai'
     | 'coder'
     | 'claude-coder';
 

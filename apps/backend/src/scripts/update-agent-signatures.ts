@@ -54,7 +54,7 @@ for (const file of files) {
                 console.log(`- Nenhuma alteração necessária: ${file}`);
             }
         } catch (error) {
-            console.error(`✗ Erro ao processar ${file}:`, error.message);
+            console.error(`✗ Erro ao processar ${file}:`, (error as Error).message);
         }
     }
 }

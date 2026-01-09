@@ -138,8 +138,189 @@ export class PluginManager {
      * Instala um plugin
      */
     async install(source: string): Promise<void> {
-        // TODO: Implementar instalação de plugins via npm, git, ou local
-        throw new Error('Instalação de plugins ainda não implementada');
+        // Determinar o tipo de fonte: npm, git ou local
+        let pluginName: string;
+
+        if (source.startsWith('http') || source.includes('git@') || source.includes('.git')) {
+            // Instalação via Git
+            pluginName = await this.installFromGit(source);
+        } else if (source.startsWith('.') || source.startsWith('/') || existsSync(source)) {
+            // Instalação local
+            pluginName = await this.installFromLocal(source);
+        } else {
+            // Instalação via npm
+            pluginName = await this.installFromNpm(source);
+        }
+
+        // Carregar o plugin recém-instalado
+        const pluginPath = join(this.globalPluginsDir, pluginName);
+        const manifestPath = join(pluginPath, 'plugin.json');
+
+        if (existsSync(manifestPath)) {
+            try {
+                const manifest: PluginManifest = JSON.parse(
+                    readFileSync(manifestPath, 'utf-8')
+                );
+
+                this.plugins.set(manifest.name, {
+                    manifest,
+                    path: pluginPath,
+                    enabled: true,
+                });
+            } catch (error) {
+                console.error(`Erro ao carregar manifest do plugin ${pluginName}:`, error);
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * Instala um plugin via Git
+     */
+    private async installFromGit(gitUrl: string): Promise<string> {
+        const { execSync } = await import('child_process');
+        const { basename } = await import('path');
+
+        // Extrair nome do repositório
+        const repoName = basename(gitUrl.replace('.git', ''), '.git');
+        const tempPath = join(this.globalPluginsDir, '.temp', repoName);
+        const targetPath = join(this.globalPluginsDir, repoName);
+
+        // Limpar temporário se existir
+        if (existsSync(tempPath)) {
+            execSync(`rmdir /s /q "${tempPath}"`, { stdio: 'ignore' });
+        }
+
+        // Limpar destino se já existir
+        if (existsSync(targetPath)) {
+            execSync(`rmdir /s /q "${targetPath}"`, { stdio: 'ignore' });
+        }
+
+        try {
+            // Clonar repositório
+            execSync(`git clone "${gitUrl}" "${tempPath}"`, { stdio: 'inherit' });
+
+            // Verificar se tem plugin.json
+            const pluginJsonPath = join(tempPath, 'plugin.json');
+            if (!existsSync(pluginJsonPath)) {
+                throw new Error(`Repositório não contém plugin.json: ${gitUrl}`);
+            }
+
+            // Ler nome do plugin do manifest
+            const manifest: PluginManifest = JSON.parse(
+                readFileSync(pluginJsonPath, 'utf-8')
+            );
+
+            const pluginName = manifest.name;
+            const finalPath = join(this.globalPluginsDir, pluginName);
+
+            // Mover para pasta final
+            execSync(`move "${tempPath}" "${finalPath}"`, { stdio: 'inherit' });
+
+            console.log(`Plugin "${pluginName}" instalado com sucesso via Git!`);
+            return pluginName;
+        } finally {
+            // Limpar temporário
+            if (existsSync(tempPath)) {
+                execSync(`rmdir /s /q "${tempPath}"`, { stdio: 'ignore' });
+            }
+        }
+    }
+
+    /**
+     * Instala um plugin localmente
+     */
+    private async installFromLocal(localPath: string): Promise<string> {
+        const { cpSync } = await import('fs');
+        const resolvedPath = resolve(localPath);
+
+        if (!existsSync(resolvedPath)) {
+            throw new Error(`Caminho local não encontrado: ${localPath}`);
+        }
+
+        // Verificar se tem plugin.json
+        const pluginJsonPath = join(resolvedPath, 'plugin.json');
+        if (!existsSync(pluginJsonPath)) {
+            throw new Error(`Caminho não contém plugin.json: ${resolvedPath}`);
+        }
+
+        // Ler nome do plugin do manifest
+        const manifest: PluginManifest = JSON.parse(
+            readFileSync(pluginJsonPath, 'utf-8')
+        );
+
+        const pluginName = manifest.name;
+        const targetPath = join(this.globalPluginsDir, pluginName);
+
+        // Copiar para pasta de plugins
+        if (existsSync(targetPath)) {
+            throw new Error(`Plugin "${pluginName}" já existe`);
+        }
+
+        cpSync(resolvedPath, targetPath, { recursive: true });
+
+        console.log(`Plugin "${pluginName}" instalado com sucesso localmente!`);
+        return pluginName;
+    }
+
+    /**
+     * Instala um plugin via npm
+     */
+    private async installFromNpm(packageName: string): Promise<string> {
+        const { execSync } = await import('child_process');
+        const tempPath = join(this.globalPluginsDir, '.temp', 'npm-install');
+
+        // Limpar temporário se existir
+        if (existsSync(tempPath)) {
+            execSync(`rmdir /s /q "${tempPath}"`, { stdio: 'ignore' });
+        }
+
+        mkdirSync(tempPath, { recursive: true });
+
+        try {
+            // Instalar pacote npm temporariamente
+            execSync(`npm install ${packageName}`, {
+                cwd: tempPath,
+                stdio: 'inherit'
+            });
+
+            // Encontrar o diretório do pacote instalado
+            const nodeModulesPath = join(tempPath, 'node_modules');
+            const packagePath = join(nodeModulesPath, packageName);
+
+            if (!existsSync(packagePath)) {
+                throw new Error(`Pacote npm não encontrado após instalação: ${packageName}`);
+            }
+
+            // Verificar se tem plugin.json
+            const pluginJsonPath = join(packagePath, 'plugin.json');
+            if (!existsSync(pluginJsonPath)) {
+                throw new Error(`Pacote npm não contém plugin.json: ${packageName}`);
+            }
+
+            // Ler nome do plugin do manifest
+            const manifest: PluginManifest = JSON.parse(
+                readFileSync(pluginJsonPath, 'utf-8')
+            );
+
+            const pluginName = manifest.name;
+            const targetPath = join(this.globalPluginsDir, pluginName);
+
+            // Copiar para pasta de plugins
+            if (existsSync(targetPath)) {
+                throw new Error(`Plugin "${pluginName}" já existe`);
+            }
+
+            execSync(`xcopy /E /I /Y "${packagePath}" "${targetPath}"`, { stdio: 'inherit' });
+
+            console.log(`Plugin "${pluginName}" instalado com sucesso via npm!`);
+            return pluginName;
+        } finally {
+            // Limpar temporário
+            if (existsSync(tempPath)) {
+                execSync(`rmdir /s /q "${tempPath}"`, { stdio: 'ignore' });
+            }
+        }
     }
 
     /**

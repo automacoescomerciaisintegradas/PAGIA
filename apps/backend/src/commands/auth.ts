@@ -28,6 +28,10 @@ const PROVIDERS: { value: CredentialProvider; name: string; envVar: string }[] =
     { value: 'openrouter', name: 'OpenRouter', envVar: 'OPENROUTER_API_KEY' },
     { value: 'ollama', name: 'Ollama (Local)', envVar: 'OLLAMA_HOST' },
     { value: 'qwen', name: 'Alibaba Qwen', envVar: 'QWEN_API_KEY' },
+    { value: 'nvidia', name: 'NVIDIA NIM', envVar: 'NVIDIA_API_KEY' },
+    { value: 'together', name: 'Together AI', envVar: 'TOGETHER_API_KEY' },
+    { value: 'replicate', name: 'Replicate', envVar: 'REPLICATE_API_KEY' },
+    { value: 'zai', name: 'ZAI / GLM (Zhipu AI)', envVar: 'ZAI_API_KEY' },
     { value: 'coder', name: 'AI Coder', envVar: 'CODER_API_KEY' },
     { value: 'claude-coder', name: 'Claude Coder', envVar: 'ANTHROPIC_API_KEY' },
 ];
@@ -62,18 +66,55 @@ authCommand
 
             // If provider not specified, ask user
             if (!provider) {
+                // Mostrar lista de provedores disponíveis
+                console.log(chalk.cyan.bold('\n📋 Provedores de IA Disponíveis:\n'));
+                PROVIDERS.forEach((p, i) => {
+                    const num = String(i + 1).padStart(2, ' ');
+                    console.log(chalk.gray(`  ${num}. `) + chalk.white(p.name) + chalk.gray(` (${p.value})`));
+                });
+                console.log('');
+
                 const { providerChoice } = await inquirer.prompt([
                     {
-                        type: 'list',
+                        type: 'input',
                         name: 'providerChoice',
-                        message: 'Selecione o provedor de IA:',
-                        choices: PROVIDERS.map(p => ({
-                            name: `${p.name} (${p.value})`,
-                            value: p.value,
-                        })),
+                        message: 'Digite o número ou nome do provedor (ex: 1 ou gemini):',
+                        validate: (input: string) => {
+                            const trimmed = input.trim();
+
+                            // Verificar se é um número
+                            const num = parseInt(trimmed, 10);
+                            if (!isNaN(num) && num >= 1 && num <= PROVIDERS.length) {
+                                return true;
+                            }
+
+                            // Verificar se é um nome válido
+                            const found = PROVIDERS.find(p =>
+                                p.value.toLowerCase() === trimmed.toLowerCase() ||
+                                p.name.toLowerCase() === trimmed.toLowerCase()
+                            );
+                            if (found) {
+                                return true;
+                            }
+
+                            return `Entrada inválida. Use um número (1-${PROVIDERS.length}) ou nome do provedor.`;
+                        },
                     },
                 ]);
-                selectedProvider = providerChoice;
+
+                // Converter entrada para provedor
+                const trimmed = providerChoice.trim();
+                const num = parseInt(trimmed, 10);
+
+                if (!isNaN(num) && num >= 1 && num <= PROVIDERS.length) {
+                    selectedProvider = PROVIDERS[num - 1].value;
+                } else {
+                    const found = PROVIDERS.find(p =>
+                        p.value.toLowerCase() === trimmed.toLowerCase() ||
+                        p.name.toLowerCase() === trimmed.toLowerCase()
+                    );
+                    selectedProvider = found!.value;
+                }
             } else {
                 // Validate provider
                 const validProvider = PROVIDERS.find(p => p.value === provider.toLowerCase());

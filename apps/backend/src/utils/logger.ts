@@ -189,8 +189,8 @@ class Logger {
             console.log(color(line));
         });
 
-        console.log(chalk.gray('  Desenvolvido por Automações Comerciais Integradas! ⚙️ - contato@automacoescomerciais.com.br'));
-        console.log(chalk.gray('  © 2025 Automações Comerciais Integradas. Todos os direitos reservados.\n'));
+        console.log(chalk.gray('  Framework CLI modular de agentes de IA para gestão de projetos de software.'));
+        console.log(chalk.gray('  Inspirado no BMAD Method com planejamento multi-nível inteligente.\n'));
     }
 
     /**

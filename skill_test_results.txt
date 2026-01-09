@@ -1,0 +1,12 @@
+Skill found: context-curation
+Description: Curates and organizes context into a hierarchical tree structure for AI processing with advanced semantic capabilities
+
+Result: Context tree statistics:
+
+Total nodes: 5
+Total size: 0 bytes (0.00 KB)
+
+By type:
+  root: 1
+  category: 4
+

@@ -360,6 +360,65 @@ pagia knowledge search "como implementar autenticação"
 pagia knowledge stats
 ```
 
+### Curadoria de Contexto
+
+Sistema avançado de curadoria e organização de contexto em uma estrutura de árvore hierárquica para processamento por IA, com recursos de indexação semântica e filtragem avançada.
+
+```bash
+# Construir árvore de contexto a partir dos arquivos do projeto
+pagia context build-tree . "**/*.md" "**/*.ts" "**/*.js"
+
+# Buscar informações na árvore de contexto (busca tradicional por palavras-chave)
+pagia context search "autenticação"
+
+# Busca semântica usando embeddings para encontrar conteúdo relacionado
+pagia context semantic-search "gerenciamento de usuários"
+
+# Adicionar um documento específico à árvore de contexto com tags
+pagia context add-document ./docs/nova-funcionalidade.md documentation "important,api,auth"
+
+# Filtrar contexto por tipo, tag ou prioridade
+pagia context filter code
+pagia context filter file important 2
+
+# Ver estatísticas da árvore de contexto
+pagia context stats
+```
+
+#### Comandos Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `pagia context build-tree [diretório] [padrões...]` | Constrói uma árvore de contexto a partir dos arquivos |
+| `pagia context search <consulta>` | Pesquisa tradicional por palavras-chave na árvore de contexto |
+| `pagia context semantic-search <consulta>` | Pesquisa semântica usando embeddings para encontrar conteúdo relacionado |
+| `pagia context add-document <arquivo> [categoria] [tags]` | Adiciona um documento à árvore de contexto com categorização e tagging |
+| `pagia context filter [tipo] [tag] [prioridade]` | Filtra o contexto por critérios específicos |
+| `pagia context stats` | Exibe estatísticas da árvore de contexto |
+| `pagia context help` | Mostra a ajuda de comandos |
+
+#### Recursos Avançados
+
+##### Indexação Semântica
+O sistema gera embeddings para cada documento que permitem buscas semânticas, encontrando conteúdo relevante mesmo quando não contém exatamente as mesmas palavras-chave da consulta.
+
+##### Sistema de Tags e Filtragem
+Cada documento pode ser marcado com tags que permitem filtragem avançada. Isso é útil para identificar rapidamente documentos importantes, críticos ou de determinado domínio.
+
+##### Metadados Enriquecidos
+Além das categorias básicas, cada documento armazena metadados como tamanho do arquivo, data de modificação, e outros atributos que podem ser usados para ranqueamento e filtragem.
+
+#### Estrutura de Árvore de Contexto
+
+O sistema de curadoria de contexto organiza os arquivos do projeto em uma estrutura hierárquica com as seguintes categorias padrão:
+
+- **Documentation**: Arquivos de documentação (`.md`, `.txt`)
+- **Code**: Arquivos de código-fonte (`.ts`, `.js`, `.py`, etc.)
+- **Tests**: Arquivos de teste (`.test.ts`, `.spec.js`, etc.)
+- **Config**: Arquivos de configuração (`.json`, `.yaml`, `.yml`, etc.)
+
+Esta estrutura permite que a IA compreenda melhor a organização do projeto e acesse informações relevantes de forma eficiente.
+
 ### Tipos Suportados
 - Markdown (`.md`)
 - Código (`.ts`, `.js`, `.py`)

@@ -1,0 +1,14 @@
+Testing ContextCuration class...
+
+1. Building context tree...
+Context tree built with 5 nodes
+
+2. Searching for "context"...
+Search results for "context":
+
+- Project Context Tree
+  Type: root
+
+
+
+Context curation tests completed!

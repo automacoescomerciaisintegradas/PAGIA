@@ -1,5 +1,6 @@
 import { Skill } from './types.js';
 import { copywriter } from './copywriter.js';
+import { contextCuration } from './context-curation.js';
 
 // Re-export type
 export type { Skill } from './types.js';
@@ -16,7 +17,8 @@ const registry: Record<string, Skill> = {
         run: async ({ input }) => input.split('').reverse().join('')
     },
     // Register imported skills
-    [copywriter.name]: copywriter
+    [copywriter.name]: copywriter,
+    [contextCuration.name]: contextCuration
 };
 
 export function getSkill(name: string): Skill {

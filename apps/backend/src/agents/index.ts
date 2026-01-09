@@ -39,4 +39,5 @@ export { SubagentManagerAgent, subagentManagerAgent } from './specialized/subage
 export { DebuggerAgent, debuggerAgent } from './specialized/debugger-agent.js';
 export { DataScientistAgent, dataScientistAgent } from './specialized/data-scientist-agent.js';
 export { TemplateManagerAgent, templateManagerAgent } from './specialized/template-manager-agent.js';
+export { LSPAgent, lspAgent } from './specialized/lsp-agent.js';
 

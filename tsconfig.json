@@ -7,7 +7,7 @@
       "ES2022"
     ],
     "outDir": "./dist",
-    "rootDir": "./apps/backend/src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -36,10 +36,13 @@
     }
   },
   "include": [
+    "src/**/*",
     "apps/backend/src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

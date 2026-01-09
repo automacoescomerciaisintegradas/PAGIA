@@ -1,0 +1,1 @@
+{"version":3,"file":"agent-md-validator.d.ts","sourceRoot":"","sources":["agent-md-validator.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,gBAAgB;IAC/B,KAAK,EAAE,OAAO,CAAC;IACf,MAAM,EAAE,MAAM,EAAE,CAAC;IACjB,QAAQ,EAAE,MAAM,EAAE,CAAC;CACpB;AAID,wBAAgB,4BAA4B,CAAC,OAAO,EAAE,MAAM,GAAG,gBAAgB,CA6B9E;AAED,wBAAgB,yBAAyB,CAAC,IAAI,EAAE,MAAM,GAAG,gBAAgB,CAOxE"}

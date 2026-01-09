@@ -37,6 +37,7 @@ import { chatCommand, startDefaultREPL } from './commands/chat.js';
 import chalk from 'chalk';
 import { webCommand } from './commands/web.js';
 import { serveLlmCommand } from './commands/serve-llm.js';
+import { terminalCommand } from './commands/terminal-setup.js';
 
 // Load environment variables
 config();
@@ -137,6 +138,7 @@ program.addCommand(doctorCommand);
 program.addCommand(pluginCommand);
 program.addCommand(skillCommand);
 program.addCommand(workflowCommand);
+program.addCommand(terminalCommand);
 
 // registro "soft" do comando plan install-template (melhor-esforço, não intrusivo)
 // Ajuste conforme o framework de CLI (commander / cac / yargs) usado no projeto.

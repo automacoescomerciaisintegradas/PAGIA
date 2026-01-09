@@ -28,23 +28,17 @@ function clearLine(): void {
 }
 
 function printWelcome(): void {
-    const providerList = MultiProvider.listAvailableProviders();
-    const configured = providerList.filter(p => p.configured).length;
-
+    // Interface minimalista - apenas informação essencial
     console.log('');
-    console.log(chalk.bold.cyan(' PAGIA') + chalk.gray(' - Plano de Ação de Gestão e Implementação com IA'));
-    console.log('');
-    console.log(chalk.gray(` Provider: ${chalk.green(provider.name)} (${configured} disponíveis)`));
-    console.log(chalk.gray(` Diretório: ${process.cwd()}`));
-    console.log('');
-    console.log(chalk.gray(' Dicas: Digite sua pergunta e pressione Enter.'));
-    console.log(chalk.gray('        Use /help para ver comandos. Ctrl+C para sair.'));
+    console.log(chalk.cyan.bold('  PAGIA') + chalk.gray(' - Framework CLI de agentes de IA'));
+    console.log(chalk.gray(`  Provider: ${chalk.green(provider.name)} | Diretório: ${process.cwd()}`));
+    console.log(chalk.gray('  Use /help para comandos. Ctrl+C para sair.'));
     console.log('');
 }
 
 function printResponse(content: string): void {
     console.log('');
-    console.log(chalk.green.bold('PAGIA'));
+    console.log(chalk.green.bold('✦ PAGIA'));
     console.log('');
     for (const line of content.split('\n')) {
         console.log('  ' + line);
@@ -223,11 +217,7 @@ async function run(providerName?: string): Promise<void> {
         process.exit(1);
     }
 
-    console.clear();
-
-    if (interfaceConfig.showBanner) {
-        printWelcome();
-    }
+    // Não limpar a tela - manter o banner do index.ts visível
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -241,9 +231,13 @@ async function run(providerName?: string): Promise<void> {
     });
 
     const promptUser = (): void => {
-        // Use a more robust prompt display
-        process.stdout.write('\n');
-        rl.question(chalk.cyan('> '), async (input) => {
+        // Display input box with hint
+        console.log('');
+        console.log(chalk.cyan('╭──────────────────────────────────────────────────────────────────────────────────╮'));
+        process.stdout.write(chalk.cyan('│ ') + chalk.cyan.bold('> ') + chalk.gray('Digite sua mensagem ou @caminho/do/arquivo') + ' '.repeat(30) + '\r' + chalk.cyan('│ ') + chalk.cyan.bold('> '));
+
+        rl.question('', async (input) => {
+            console.log(chalk.cyan('╰──────────────────────────────────────────────────────────────────────────────────╯'));
             const q = input.trim();
 
             if (!q) {
