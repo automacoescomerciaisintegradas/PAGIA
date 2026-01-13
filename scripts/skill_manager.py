@@ -91,7 +91,7 @@ def parse_skill_md(skill_path: Path) -> dict:
         # or if target is just a file. But for now assume structure.
         raise FileNotFoundError(f"SKILL.md not found in {skill_path}")
 
-    content = skill_file.read_text()
+    content = skill_file.read_text(encoding="utf-8")
 
     # Very basic frontmatter parser
     frontmatter = {}
@@ -122,7 +122,7 @@ description: {description}
 {data['body']}
 """
     target_file = WORKFLOWS_DIR / f"{skill_name}.md"
-    target_file.write_text(content)
+    target_file.write_text(content, encoding="utf-8")
     print(f"Created Workflow: {target_file}")
 
 
@@ -131,9 +131,9 @@ def update_global_rule(skill_name: str, content: str):
     GLOBAL_RULES_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     if not GLOBAL_RULES_FILE.exists():
-        GLOBAL_RULES_FILE.write_text("")
+        GLOBAL_RULES_FILE.write_text("", encoding="utf-8")
 
-    current_content = GLOBAL_RULES_FILE.read_text()
+    current_content = GLOBAL_RULES_FILE.read_text(encoding="utf-8")
 
     # Define markers
     start_marker = f"<!-- ANTHROPIC_SKILL_START: {skill_name} -->"
@@ -155,7 +155,7 @@ def update_global_rule(skill_name: str, content: str):
         separator = "\n\n" if current_content.strip() else ""
         updated_content = f"{current_content}{separator}{new_block}"
 
-    GLOBAL_RULES_FILE.write_text(updated_content)
+    GLOBAL_RULES_FILE.write_text(updated_content, encoding="utf-8")
     print(f"Saved Global Rule to: {GLOBAL_RULES_FILE}")
 
 
@@ -180,7 +180,7 @@ description: {description}
     content = f"{frontmatter}{data['body']}"
 
     target_file = WORKSPACE_RULES_DIR / f"{skill_name}.md"
-    target_file.write_text(content)
+    target_file.write_text(content, encoding="utf-8")
     print(f"Created Workspace Rule: {target_file}")
 
 
@@ -227,8 +227,10 @@ def command_ingest(args, config):
     if not skill_dir.exists():
         skill_dir = repo_path / skill_name
         if not skill_dir.exists():
-            print(f"Error: Skill '{skill_name}' not found in {source_name}.")
-            return
+            skill_dir = repo_path / ".pagia" / "skills" / skill_name
+            if not skill_dir.exists():
+                print(f"Error: Skill '{skill_name}' not found in {source_name}.")
+                return
 
     try:
         data = parse_skill_md(skill_dir)
@@ -295,7 +297,7 @@ def list_artifacts():
 
     print("\nINSTALLED GLOBAL RULES:")
     if GLOBAL_RULES_FILE.exists():
-        content = GLOBAL_RULES_FILE.read_text()
+        content = GLOBAL_RULES_FILE.read_text(encoding="utf-8")
         # Find all start markers
         # Marker format: <!-- ANTHROPIC_SKILL_START: {skill_name} -->
         pattern = re.compile(r"<!-- ANTHROPIC_SKILL_START: (.+?) -->")
@@ -339,7 +341,7 @@ def remove_artifact(name: str, type_: str, scope: str = "workspace"):
                 print("Global rules file does not exist.")
                 return
 
-            content = GLOBAL_RULES_FILE.read_text()
+            content = GLOBAL_RULES_FILE.read_text(encoding="utf-8")
             start_marker = f"<!-- ANTHROPIC_SKILL_START: {name} -->"
             end_marker = f"<!-- ANTHROPIC_SKILL_END: {name} -->"
 
@@ -359,7 +361,7 @@ def remove_artifact(name: str, type_: str, scope: str = "workspace"):
             # Clean up excessive newlines if any
             new_content = re.sub(r"\n{3,}", "\n\n", new_content.strip() + "\n")
 
-            GLOBAL_RULES_FILE.write_text(new_content)
+            GLOBAL_RULES_FILE.write_text(new_content, encoding="utf-8")
             print(f"Removed global rule: {name}")
     else:
         print(f"Unknown type: {type_}")
