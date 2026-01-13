@@ -1,13 +1,13 @@
 ---
 layout: default
-title: PAGIA - Plano de Ação de Gestão e Implementação com IA
+title: PAGIA - AI Management and Implementation Action Plan
 ---
 
 # 🤖 PAGIA
 
-**Plano de Ação de Gestão e Implementação com IA**
+**AI Management and Implementation Action Plan**
 
-Framework CLI modular de agentes de IA para gestão de projetos de software. Inspirado no BMAD Method, oferece um sistema de planejamento multi-nível com agentes inteligentes.
+Modular CLI framework of AI agents for software project management. Inspired by the BMAD Method, it offers a multi-level planning system with intelligent agents.
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/automacoescomerciaisintegradas/PAGIA)
 [![Node](https://img.shields.io/badge/Node-%3E%3D18.0.0-green)](https://nodejs.org)
@@ -15,48 +15,48 @@ Framework CLI modular de agentes de IA para gestão de projetos de software. Ins
 
 ---
 
-## ✨ Características
+## ✨ Features
 
-| Funcionalidade | Descrição |
-|----------------|-----------|
-| 🤖 **Agentes Inteligentes** | CodeOptimizer, Planner, Tester, Conductor |
-| 📚 **Base de Conhecimento** | RAG com busca semântica |
-| 📦 **Web Bundler** | Export para ChatGPT, Claude, Gemini |
-| 🔌 **MCP Server** | Integração com VS Code, Cursor |
-| 🔄 **TDD Workflow** | Red-Green-Refactor assistido por IA |
+| Feature | Description |
+|---------|-------------|
+| 🤖 **Intelligent Agents** | CodeOptimizer, Planner, Tester, Conductor |
+| 📚 **Knowledge Base** | RAG with semantic search |
+| 📦 **Web Bundler** | Export to ChatGPT, Claude, Gemini |
+| 🔌 **MCP Server** | Integration with VS Code, Cursor |
+| 🔄 **TDD Workflow** | AI-assisted Red-Green-Refactor |
 | 🎭 **Conductor** | Context-Driven Development |
 
 ---
 
-## 🚀 Início Rápido
+## 🚀 Quick Start
 
 ```bash
-# Instalar globalmente
+# Install globally
 npm install -g pagia
 
-# Inicializar em um projeto
+# Initialize in a project
 pagia init
 
-# Verificar status
+# Check status
 pagia status
 
-# Criar plano de ação
+# Create action plan
 pagia plan create --ai
 ```
 
 ---
 
-## 📖 Documentação
+## 📖 Documentation
 
-- [Instalação](installation.md) - Como instalar e configurar
-- [Comandos](commands.md) - Lista completa de comandos
-- [Agentes](agents.md) - Documentação dos agentes
+- [Installation](installation.md) - How to install and configure
+- [Commands](commands.md) - Complete list of commands
+- [Agents](agents.md) - Agent documentation
 - [Conductor](conductor.md) - Context-Driven Development
-- [API Reference](api.md) - Referência da API
+- [API Reference](api.md) - API Reference
 
 ---
 
-## 🎯 Fluxo de Trabalho
+## 🎯 Workflow
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -67,13 +67,13 @@ pagia plan create --ai
                            ▼
               ┌─────────────────────────┐
               │     Update Todos        │
-              │   Sincroniza tarefas    │
+              │     Sync tasks          │
               └─────────────────────────┘
 ```
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
 ```
 PAGIA CLI
@@ -89,28 +89,28 @@ PAGIA CLI
 
 ---
 
-## 📝 Módulos de Plano
+## 📝 Plan Modules
 
-| Módulo | Descrição |
-|--------|-----------|
-| 📊 **Global Plan** | Gestão estratégica de alto nível |
-| 📋 **Stage Plan** | Planejamento por etapas |
-| 💬 **Prompt Plan** | Geração via prompts |
-| 🤖 **AI Plan** | Planejamento autônomo |
-
----
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie sua branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add: nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+| Module | Description |
+|--------|-------------|
+| 📊 **Global Plan** | High-level strategic management |
+| 📋 **Stage Plan** | Stage-based planning |
+| 💬 **Prompt Plan** | Prompt-based generation |
+| 🤖 **AI Plan** | Autonomous planning |
 
 ---
 
-## 📄 Licença
+## 🤝 Contribution
+
+1. Fork the project
+2. Create your branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add: new feature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
 
 MIT © 2025 [Automações Comerciais Integradas](https://github.com/automacoescomerciaisintegradas)
 

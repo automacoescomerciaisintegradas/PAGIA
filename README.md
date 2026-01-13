@@ -1,110 +1,110 @@
-# PAGIA - Plano de Ação de Gestão e Implementação com IA
+# PAGIA - AI Management and Implementation Action Plan
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/automacoescomerciais/pagia)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
-> Framework CLI modular de agentes de IA para gestão de projetos de software.
-> Inspirado no BMAD Method, oferece planejamento multi-nível com agentes inteligentes.
+> Modular CLI framework of AI agents for software project management.
+> Inspired by the BMAD Method, it offers multi-level planning with intelligent agents.
 
-**Desenvolvido por:** Automações Comerciais Integradas ⚙️  
-**Contato:** contato@automacoescomerciais.com.br
+**Developed by:** Automações Comerciais Integradas ⚙️  
+**Contact:** contato@automacoescomerciais.com.br
 
 ---
 
-## 📋 Índice
+## 📋 Table of Contents
 
 - [Interface](#-interface)
-- [Funcionalidades](#-funcionalidades)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Requisitos](#-requisitos)
-- [Uso da CLI](#-uso-da-cli)
-- [Instalação](#-instalação)
-- [Comandos](#-comandos)
-- [Configuração](#-configuração)
+- [Features](#-features)
+- [Project Structure](#-project-structure)
+- [Requirements](#-requirements)
+- [CLI Usage](#-cli-usage)
+- [Installation](#-installation)
+- [Commands](#-commands)
+- [Configuration](#-configuration)
 
 ---
 
 ## 🖥️ Interface
 
-### Quadro Kanban
-Gerenciamento visual de tarefas do planejamento até a conclusão. Crie tarefas e monitore o progresso do agente em tempo real.
+### Kanban Board
+Visual task management from planning to completion. Create tasks and monitor agent progress in real-time.
 
-### Terminal de Agente
-Terminais alimentados por IA com injeção de contexto de tarefa em um clique. Gere múltiplos agentes para trabalho paralelo.
+### Agent Terminal
+AI-powered terminals with one-click task context injection. Spawn multiple agents for parallel work.
 
-### Roteiro (Roadmap)
-Planejamento de recursos assistido por IA, análise de concorrentes e segmentação de público.
-
----
-
-## ✨ Funcionalidades Adicionais
-
-- **Insights**: Interface de chat para explorar sua base de código.
-- **Ideação**: Descubra melhorias, problemas de desempenho e vulnerabilidades.
-- **Changelog**: Gere notas de lançamento a partir de tarefas concluídas.
+### Roadmap
+AI-assisted resource planning, competitor analysis, and audience segmentation.
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## ✨ Additional Features
+
+- **Insights**: Chat interface to explore your codebase.
+- **Ideation**: Discover improvements, performance issues, and vulnerabilities.
+- **Changelog**: Generate release notes from completed tasks.
+
+---
+
+## 🏗️ Project Structure
 
 ```text
 PAGIA/
 ├── apps/
-│   ├── backend/     # Agentes Python, especificações, pipeline de QA
-│   └── frontend/    # Aplicação desktop Electron
-├── guides/          # Documentação adicional
-├── tests/           # Conjunto de testes
-└── scripts/         # Utilitários de build
+│   ├── backend/     # Python agents, specs, QA pipeline
+│   └── frontend/    # Electron desktop application
+├── guides/          # Additional documentation
+├── tests/           # Test suite
+└── scripts/         # Build utilities
 ```
 
 ---
 
-## 📋 Requisitos
+## 📋 Requirements
 
-- **Assinatura Claude Pro/Max**: [Adquira aqui](https://claude.ai/pro)
+- **Claude Pro/Max Subscription**: [Get it here](https://claude.ai/pro)
 - **Claude Code CLI**: `npm install -g @anthropic-ai/claude-code`
-- **Repositório Git**: Seu projeto deve ser inicializado como um repositório git.
-- **Python 3.12+**: Necessário para o backend e a Camada de Memória.
+- **Git Repository**: Your project must be initialized as a git repository.
+- **Python 3.12+**: Required for the backend and Memory Layer.
 
 ---
 
-## 💻 Uso da CLI
+## 💻 CLI Usage
 
-Para operação headless, integração CI/CD ou fluxos de trabalho apenas com terminais:
+For headless operation, CI/CD integration, or terminal-only workflows:
 
 ```bash
 cd apps/backend
 
-# Criar uma especificação interativamente
+# Create a spec interactively
 python spec_runner.py --interactive
 
-# Executar build autônomo
+# Run autonomous build
 python run.py --spec 001
 
-# Revisar e mesclar
+# Review and merge
 python run.py --spec 001 --review
 python run.py --spec 001 --merge
 ```
 
-Veja `guides/CLI-USAGE.md` para documentação completa da CLI.
+See `guides/CLI-USAGE.md` for full CLI documentation.
 
 ---
 
-## 🚀 Instalação
+## 🚀 Installation
 
-### Pré-requisitos
+### Prerequisites
 
 - Node.js >= 18.0.0
-- npm ou yarn
+- npm or yarn
 
-### Instalação Global
+### Global Installation
 
 ```bash
 npm install -g pagia
 ```
 
-### Instalação Local
+### Local Installation
 
 ```bash
 git clone https://github.com/automacoescomerciais/pagia.git
@@ -114,140 +114,140 @@ npm run build
 npm link
 ```
 
-### Configuração de API
+### API Configuration
 
-Crie um arquivo `.env` na raiz do projeto com as credenciais do provedor escolhido:
+Create a `.env` file in the project root with the chosen provider credentials:
 
 ```env
-# Provedor de IA (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter)
+# AI Provider (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter)
 AI_PROVIDER=gemini
 
-# Gemini (Padrão)
-GEMINI_API_KEY=sua_chave_aqui
+# Gemini (Default)
+GEMINI_API_KEY=your_key_here
 GEMINI_MODEL=gemini-2.0-flash-exp
 
-# OpenAI (Opcional)
-OPENAI_API_KEY=sua_chave_aqui
+# OpenAI (Optional)
+OPENAI_API_KEY=your_key_here
 OPENAI_MODEL=gpt-4o
 
-# Anthropic (Opcional)
-ANTHROPIC_API_KEY=sua_chave_aqui
+# Anthropic (Optional)
+ANTHROPIC_API_KEY=your_key_here
 ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
 
-# Groq (Opcional) - Inferência rápida
-GROQ_API_KEY=sua_chave_aqui
+# Groq (Optional) - Fast inference
+GROQ_API_KEY=your_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
 
-# Ollama (Local) - Sem API key necessária
+# Ollama (Local) - No API key needed
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.2
 
-# DeepSeek (Opcional)
-DEEPSEEK_API_KEY=sua_chave_aqui
+# DeepSeek (Optional)
+DEEPSEEK_API_KEY=your_key_here
 DEEPSEEK_MODEL=deepseek-chat
 
-# Mistral (Opcional)
-MISTRAL_API_KEY=sua_chave_aqui
+# Mistral (Optional)
+MISTRAL_API_KEY=your_key_here
 MISTRAL_MODEL=mistral-large-latest
 
-# OpenRouter (Opcional) - Múltiplos modelos
-OPENROUTER_API_KEY=sua_chave_aqui
+# OpenRouter (Optional) - Multiple models
+OPENROUTER_API_KEY=your_key_here
 OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
 ```
 
-📖 Veja a [documentação completa de provedores](docs/AI_PROVIDERS.md) para mais detalhes.
+📖 See [full provider documentation](docs/AI_PROVIDERS.md) for more details.
 
 ---
 
-## ⚡ Início Rápido
+## ⚡ Quick Start
 
 ```bash
-# Inicializar PAGIA em um projeto
+# Initialize PAGIA in a project
 pagia init
 
-# Verificar status
+# Check status
 pagia status
 
-# Criar um plano de ação
+# Create an action plan
 pagia plan create --ai
 
-# Iniciar workflow TDD
+# Start TDD workflow
 pagia tdd wizard
 
-# Buscar na base de conhecimento
-pagia knowledge search "autenticação"
+# Search knowledge base
+pagia knowledge search "authentication"
 ```
 
 ---
 
-## 📝 Comandos
+## 📝 Commands
 
-### Comandos Principais
+### Core Commands
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia init` | Inicialização interativa |
-| `pagia status` | Exibe status do projeto |
-| `pagia config view` | Exibe configurações |
-| `pagia config ai` | Configura provedor de IA |
+| Command | Description |
+|---------|-------------|
+| `pagia init` | Interactive initialization |
+| `pagia status` | Displays project status |
+| `pagia config view` | Displays configuration |
+| `pagia config ai` | Configures AI provider |
 
-### Gestão de Planos
+### Plan Management
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia plan create` | Cria plano de ação |
-| `pagia plan create --ai` | Cria plano com IA |
-| `pagia plan list` | Lista todos os planos |
-| `pagia plan view <nome>` | Visualiza um plano |
-| `pagia update todos` | Sincroniza tarefas |
+| Command | Description |
+|---------|-------------|
+| `pagia plan create` | Creates action plan |
+| `pagia plan create --ai` | Creates plan with AI |
+| `pagia plan list` | Lists all plans |
+| `pagia plan view <name>` | Views a plan |
+| `pagia update todos` | Syncs tasks |
 
-### Gestão de Agentes
+### Agent Management
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia agent list` | Lista agentes |
-| `pagia agent create` | Cria novo agente |
-| `pagia agent run <nome>` | Executa um agente |
+| Command | Description |
+|---------|-------------|
+| `pagia agent list` | Lists agents |
+| `pagia agent create` | Creates new agent |
+| `pagia agent run <name>` | Runs an agent |
 
-### Bundler Web
+### Web Bundler
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia bundle create` | Cria bundle para web |
-| `pagia bundle validate <arquivo>` | Valida bundle |
-| `pagia bundle platforms` | Lista plataformas |
+| Command | Description |
+|---------|-------------|
+| `pagia bundle create` | Creates bundle for web |
+| `pagia bundle validate <file>` | Validates bundle |
+| `pagia bundle platforms` | Lists platforms |
 
-### Base de Conhecimento
+### Knowledge Base
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia knowledge add <arquivo>` | Adiciona documento |
-| `pagia knowledge search <query>` | Busca semântica |
-| `pagia knowledge list` | Lista documentos |
-| `pagia knowledge stats` | Estatísticas |
+| Command | Description |
+|---------|-------------|
+| `pagia knowledge add <file>` | Adds document |
+| `pagia knowledge search <query>` | Semantic search |
+| `pagia knowledge list` | Lists documents |
+| `pagia knowledge stats` | Statistics |
 
-### Servidor MCP
+### MCP Server
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia mcp start` | Inicia servidor |
-| `pagia mcp status` | Verifica status |
-| `pagia mcp tools` | Lista ferramentas |
-| `pagia mcp config <ide>` | Gera config para IDE |
+| Command | Description |
+|---------|-------------|
+| `pagia mcp start` | Starts server |
+| `pagia mcp status` | Checks status |
+| `pagia mcp tools` | Lists tools |
+| `pagia mcp config <ide>` | Generates config for IDE |
 
-### Workflow TDD
+### TDD Workflow
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia tdd wizard` | Assistente interativo |
-| `pagia tdd start <req>` | Inicia ciclo TDD |
-| `pagia tdd implement <teste>` | Gera implementação |
-| `pagia tdd refactor <código>` | Refatora código |
-| `pagia tdd generate <código>` | Gera testes |
+| Command | Description |
+|---------|-------------|
+| `pagia tdd wizard` | Interactive wizard |
+| `pagia tdd start <req>` | Starts TDD cycle |
+| `pagia tdd implement <test>` | Generates implementation |
+| `pagia tdd refactor <code>` | Refactors code |
+| `pagia tdd generate <code>` | Generates tests |
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -282,175 +282,175 @@ pagia knowledge search "autenticação"
 
 ---
 
-## 📦 Módulos
+## 📦 Modules
 
 ### 📊 Global Plan
-Gestão estratégica de alto nível do projeto.
-- Definição de objetivos e OKRs
-- Planejamento de marcos
-- Análise de riscos estratégicos
+High-level strategic project management.
+- Definition of objectives and OKRs
+- Milestone planning
+- Strategic risk analysis
 
 ### 📋 Stage Plan
-Planejamento detalhado por etapas e tópicos.
-- Divisão em fases de desenvolvimento
-- Gestão de dependências
-- Tracking de progresso
+Detailed planning by stages and topics.
+- Division into development phases
+- Dependency management
+- Progress tracking
 
 ### 💬 Prompt Plan
-Geração de planos a partir de prompts.
-- Interpretação de linguagem natural
-- Geração automática de tarefas
-- Estimativa de esforço
+Generating plans from prompts.
+- Natural language interpretation
+- Automatic task generation
+- Effort estimation
 
 ### 🤖 AI Plan
-Planejamento autônomo controlado pela IA.
-- Análise proativa do projeto
-- Recomendações automáticas
-- Aprendizado contínuo
+Autonomous planning controlled by AI.
+- Proactive project analysis
+- Automatic recommendations
+- Continuous learning
 
 ---
 
-## 🤖 Agentes
+## 🤖 Agents
 
-### Agentes Especializados
+### Specialized Agents
 
-| Agente | Descrição |
-|--------|-----------|
-| **CodeOptimizer** | Análise e otimização de código |
-| **Planner** | Planejamento e decomposição de tarefas |
-| **Tester** | Geração e execução de testes TDD |
+| Agent | Description |
+|-------|-------------|
+| **CodeOptimizer** | Code analysis and optimization |
+| **Planner** | Planning and task decomposition |
+| **Tester** | Test generation and execution (TDD) |
 
-### Composição de Agentes
+### Agent Composition
 
 ```typescript
-// Criar pipeline de agentes
+// Create agent pipeline
 const pipeline = agentComposer.createPipeline('review-pipeline', [
   codeOptimizerAgent,
   testerAgent,
 ]);
 
-// Criar ensemble com votação
+// Create ensemble with voting
 const ensemble = agentComposer.createEnsemble('experts', [
   agent1, agent2, agent3
 ]);
 ```
 
-### Estratégias de Composição
+### Composition Strategies
 
-- **Sequential**: Agentes executam em sequência
-- **Parallel**: Agentes executam em paralelo
-- **Pipeline**: Output de um é input do próximo
-- **Voting**: Agentes votam no melhor resultado
-- **Specialist**: Agente especialista decide quem executa
+- **Sequential**: Agents execute in sequence
+- **Parallel**: Agents execute in parallel
+- **Pipeline**: Output of one is input of next
+- **Voting**: Agents vote on the best result
+- **Specialist**: Specialist agent decides who executes
 
 ---
 
-## 📚 Base de Conhecimento
+## 📚 Knowledge Base
 
-Sistema RAG (Retrieval-Augmented Generation) para contexto de projeto.
+RAG (Retrieval-Augmented Generation) system for project context.
 
 ```bash
-# Adicionar documentação do projeto
+# Add project documentation
 pagia knowledge add ./docs -r
 
-# Buscar informações
-pagia knowledge search "como implementar autenticação"
+# Search for information
+pagia knowledge search "how to implement authentication"
 
-# Ver estatísticas
+# View statistics
 pagia knowledge stats
 ```
 
-### Curadoria de Contexto
+### Context Curation
 
-Sistema avançado de curadoria e organização de contexto em uma estrutura de árvore hierárquica para processamento por IA, com recursos de indexação semântica e filtragem avançada.
+Advanced context curation and organization system in a hierarchical tree structure for AI processing, with semantic indexing and advanced filtering capabilities.
 
 ```bash
-# Construir árvore de contexto a partir dos arquivos do projeto
+# Build context tree from project files
 pagia context build-tree . "**/*.md" "**/*.ts" "**/*.js"
 
-# Buscar informações na árvore de contexto (busca tradicional por palavras-chave)
-pagia context search "autenticação"
+# Search context tree (traditional keyword search)
+pagia context search "authentication"
 
-# Busca semântica usando embeddings para encontrar conteúdo relacionado
-pagia context semantic-search "gerenciamento de usuários"
+# Semantic search using embeddings to find related content
+pagia context semantic-search "user management"
 
-# Adicionar um documento específico à árvore de contexto com tags
-pagia context add-document ./docs/nova-funcionalidade.md documentation "important,api,auth"
+# Add a specific document to the context tree with tags
+pagia context add-document ./docs/new-feature.md documentation "important,api,auth"
 
-# Filtrar contexto por tipo, tag ou prioridade
+# Filter context by type, tag or priority
 pagia context filter code
 pagia context filter file important 2
 
-# Ver estatísticas da árvore de contexto
+# View context tree statistics
 pagia context stats
 ```
 
-#### Comandos Disponíveis
+#### Available Commands
 
-| Comando | Descrição |
-|---------|-----------|
-| `pagia context build-tree [diretório] [padrões...]` | Constrói uma árvore de contexto a partir dos arquivos |
-| `pagia context search <consulta>` | Pesquisa tradicional por palavras-chave na árvore de contexto |
-| `pagia context semantic-search <consulta>` | Pesquisa semântica usando embeddings para encontrar conteúdo relacionado |
-| `pagia context add-document <arquivo> [categoria] [tags]` | Adiciona um documento à árvore de contexto com categorização e tagging |
-| `pagia context filter [tipo] [tag] [prioridade]` | Filtra o contexto por critérios específicos |
-| `pagia context stats` | Exibe estatísticas da árvore de contexto |
-| `pagia context help` | Mostra a ajuda de comandos |
+| Command | Description |
+|---------|-------------|
+| `pagia context build-tree [directory] [patterns...]` | Builds a context tree from files |
+| `pagia context search <query>` | Traditional keyword search in context tree |
+| `pagia context semantic-search <query>` | Semantic search using embeddings to find related content |
+| `pagia context add-document <file> [category] [tags]` | Adds a document to the context tree with categorization and tagging |
+| `pagia context filter [type] [tag] [priority]` | Filters context by specific criteria |
+| `pagia context stats` | Displays context tree statistics |
+| `pagia context help` | Shows command help |
 
-#### Recursos Avançados
+#### Advanced Features
 
-##### Indexação Semântica
-O sistema gera embeddings para cada documento que permitem buscas semânticas, encontrando conteúdo relevante mesmo quando não contém exatamente as mesmas palavras-chave da consulta.
+##### Semantic Indexing
+The system generates embeddings for each document allowing semantic searches, finding relevant content even when it doesn't contain exactly the same keywords as the query.
 
-##### Sistema de Tags e Filtragem
-Cada documento pode ser marcado com tags que permitem filtragem avançada. Isso é útil para identificar rapidamente documentos importantes, críticos ou de determinado domínio.
+##### Tagging and Filtering System
+Each document can be marked with tags allowing advanced filtering. This is useful to quickly identify important, critical, or domain-specific documents.
 
-##### Metadados Enriquecidos
-Além das categorias básicas, cada documento armazena metadados como tamanho do arquivo, data de modificação, e outros atributos que podem ser usados para ranqueamento e filtragem.
+##### Enriched Metadata
+Beyond basic categories, each document stores metadata like file size, modification date, and other attributes that can be used for ranking and filtering.
 
-#### Estrutura de Árvore de Contexto
+#### Context Tree Structure
 
-O sistema de curadoria de contexto organiza os arquivos do projeto em uma estrutura hierárquica com as seguintes categorias padrão:
+The context curation system organizes project files into a hierarchical structure with the following default categories:
 
-- **Documentation**: Arquivos de documentação (`.md`, `.txt`)
-- **Code**: Arquivos de código-fonte (`.ts`, `.js`, `.py`, etc.)
-- **Tests**: Arquivos de teste (`.test.ts`, `.spec.js`, etc.)
-- **Config**: Arquivos de configuração (`.json`, `.yaml`, `.yml`, etc.)
+- **Documentation**: Documentation files (`.md`, `.txt`)
+- **Code**: Source code files (`.ts`, `.js`, `.py`, etc.)
+- **Tests**: Test files (`.test.ts`, `.spec.js`, etc.)
+- **Config**: Configuration files (`.json`, `.yaml`, `.yml`, etc.)
 
-Esta estrutura permite que a IA compreenda melhor a organização do projeto e acesse informações relevantes de forma eficiente.
+This structure allows the AI to better understand project organization and access relevant information efficiently.
 
-### Tipos Suportados
+### Supported Types
 - Markdown (`.md`)
-- Código (`.ts`, `.js`, `.py`)
+- Code (`.ts`, `.js`, `.py`)
 - JSON / YAML
-- Texto puro
+- Pure Text
 
 ---
 
 ## 🔌 MCP Server
 
-Servidor Model Context Protocol para integração com IDEs.
+Model Context Protocol server for IDE integration.
 
 ```bash
-# Iniciar servidor
+# Start server
 pagia mcp start -p 3100
 
-# Gerar configuração
+# Generate config
 pagia mcp config cursor
 pagia mcp config vscode
 pagia mcp config claude
 ```
 
-### Ferramentas Expostas
+### Exposed Tools
 
-| Ferramenta | Descrição |
-|------------|-----------|
-| `pagia.listAgents` | Lista agentes disponíveis |
-| `pagia.executeAgent` | Executa um agente |
-| `pagia.searchKnowledge` | Busca na base |
-| `pagia.status` | Status do PAGIA |
+| Tool | Description |
+|------|-------------|
+| `pagia.listAgents` | Lists available agents |
+| `pagia.executeAgent` | Executes an agent |
+| `pagia.searchKnowledge` | Searches knowledge base |
+| `pagia.status` | PAGIA status |
 
-### Configuração Cursor
+### Cursor Configuration
 
 ```json
 {
@@ -467,113 +467,113 @@ pagia mcp config claude
 
 ## 🔄 TDD Workflow
 
-Fluxo completo de Test-Driven Development.
+Complete Test-Driven Development workflow.
 
 ```bash
-# Assistente interativo
+# Interactive wizard
 pagia tdd wizard
 
-# Ciclo manual
-pagia tdd start "função de validação de email"
+# Manual cycle
+pagia tdd start "email validation function"
 pagia tdd implement ./tests/email.spec.ts
 pagia tdd refactor ./src/email.ts
 ```
 
-### Ciclo TDD
+### TDD Cycle
 
-1. 🔴 **RED**: Escrever teste que falha
-2. 🟢 **GREEN**: Implementar código mínimo
-3. 🔵 **REFACTOR**: Melhorar o código
+1. 🔴 **RED**: Write failing test
+2. 🟢 **GREEN**: Implement minimal code
+3. 🔵 **REFACTOR**: Improve code
 
 ---
 
 ## 🌐 Web Bundler
 
-Empacote agentes para uso em plataformas web.
+Package agents for use on web platforms.
 
 ```bash
-# Criar bundle para ChatGPT
+# Create bundle for ChatGPT
 pagia bundle create -p chatgpt
 
-# Validar bundle existente
+# Validate existing bundle
 pagia bundle validate ./bundle.md
 ```
 
-### Plataformas Suportadas
+### Supported Platforms
 
-| Plataforma | Limite de Tokens |
-|------------|------------------|
-| ChatGPT | 8.000 |
-| Claude | 16.000 |
-| Gemini | 32.000 |
-| Genérico | 6.000 |
+| Platform | Token Limit |
+|----------|-------------|
+| ChatGPT | 8,000 |
+| Claude | 16,000 |
+| Gemini | 32,000 |
+| Generic | 6,000 |
 
 ---
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-### Estrutura `.pagia/`
+### `.pagia/` Structure
 
 ```
 .pagia/
-├── config.yaml          # Configuração principal
-├── modules/             # Módulos instalados
+├── config.yaml          # Main configuration
+├── modules/             # Installed modules
 │   ├── global-plan/
 │   ├── stage-plan/
 │   ├── prompt-plan/
 │   └── ai-plan/
-├── plans/               # Planos de ação
-├── agents/              # Agentes customizados
-├── knowledge/           # Base de conhecimento
+├── plans/               # Action plans
+├── agents/              # Custom agents
+├── knowledge/           # Knowledge base
 │   ├── documents.json
 │   └── vectors/
-├── bundles/             # Bundles exportados
-└── _cache/              # Cache interno
+├── bundles/             # Exported bundles
+└── _cache/              # Internal cache
 ```
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição |
-|----------|-----------|
-| `AI_PROVIDER` | Provedor de IA (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter) |
-| `GEMINI_API_KEY` | Chave API do Gemini |
-| `OPENAI_API_KEY` | Chave API da OpenAI |
-| `ANTHROPIC_API_KEY` | Chave API da Anthropic |
-| `GROQ_API_KEY` | Chave API do Groq |
-| `DEEPSEEK_API_KEY` | Chave API do DeepSeek |
-| `MISTRAL_API_KEY` | Chave API do Mistral |
-| `OPENROUTER_API_KEY` | Chave API do OpenRouter |
-| `OLLAMA_BASE_URL` | URL do Ollama (default: `http://localhost:11434`) |
-| `PAGIA_FOLDER` | Pasta PAGIA (default: `.pagia`) |
-| `PAGIA_LANGUAGE` | Idioma (default: `pt-BR`) |
-| `PAGIA_DEBUG` | Ativar debug |
-
----
-
-## 📄 Licença
-
-**AGPL-3.0** - Licença Pública Geral GNU Affero v3.0
-
-O PAGIA é gratuito. Se você modificar e distribuir, ou executá-lo como um serviço, seu código também deve ser open source sob AGPL-3.0.
-
-Licenciamento comercial disponível para casos de uso de código fechado.
+| Variable | Description |
+|----------|-------------|
+| `AI_PROVIDER` | AI Provider (gemini, openai, anthropic, groq, ollama, deepseek, mistral, openrouter) |
+| `GEMINI_API_KEY` | Gemini API Key |
+| `OPENAI_API_KEY` | OpenAI API Key |
+| `ANTHROPIC_API_KEY` | Anthropic API Key |
+| `GROQ_API_KEY` | Groq API Key |
+| `DEEPSEEK_API_KEY` | DeepSeek API Key |
+| `MISTRAL_API_KEY` | Mistral API Key |
+| `OPENROUTER_API_KEY` | OpenRouter API Key |
+| `OLLAMA_BASE_URL` | Ollama URL (default: `http://localhost:11434`) |
+| `PAGIA_FOLDER` | PAGIA Folder (default: `.pagia`) |
+| `PAGIA_LANGUAGE` | Language (default: `pt-BR`) |
+| `PAGIA_DEBUG` | Enable debug |
 
 ---
 
-## 🤝 Contribuição
+## 📄 License
 
-Antes de contribuir, você deve assinar nosso [Contrato de Licença de Contribuinte (CLA)](CLA.md). Para assinar, basta comentar em seu Pull Request:
-`Eu li o documento CLA e por meio deste assino o CLA`
+**AGPL-3.0** - GNU Affero General Public License v3.0
 
-1. Fork o projeto
-2. Crie sua branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add: nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+PAGIA is free. If you modify and distribute it, or run it as a service, your code must also be open source under AGPL-3.0.
+
+Commercial licensing available for closed-source use cases.
 
 ---
- 
-## Desenvolvido por
+
+## 🤝 Contribution
+
+Before contributing, you must sign our [Contributor License Agreement (CLA)](CLA.md). To sign, just comment on your Pull Request:
+`I have read the CLA document and I hereby sign the CLA`
+
+1. Fork the project
+2. Create your branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add: new feature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## Developed by
 **Automações Comerciais Integradas** ⚙️  
- contato@automacoescomerciais.com.br
-© 2025 Automações Comerciais Integradas. Todos os direitos reservados.
+contato@automacoescomerciais.com.br
+© 2025 Automações Comerciais Integradas. All rights reserved.

@@ -2,7 +2,7 @@
   "project": {
     "name": "pagia",
     "goal": "Desenvolver uma solução robusta utilizando IA.",
-    "language": "pt-BR"
+    "language": "en-US"
   },
   "ai": {
     "provider": "gemini"
@@ -10,8 +10,8 @@
   "permissions": {
     "allowFileEdit": true,
     "allowFileCreate": true,
-    "allowFileDelete": false,
-    "allowCommandExecution": false,
+    "allowFileDelete": true,
+    "allowCommandExecution": true,
     "allowNetworkRequests": true
   },
   "context": {
@@ -30,5 +30,5 @@
   },
   "mcpServers": {},
   "createdAt": "2026-01-04T20:45:40.947Z",
-  "updatedAt": "2026-01-04T20:45:40.947Z"
+  "updatedAt": "2026-01-10T04:00:00.000Z"
 }

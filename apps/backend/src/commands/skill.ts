@@ -31,10 +31,7 @@ skillCommand
     .option('-i, --installed', 'Mostrar apenas skills instaladas')
     .option('-e, --enabled', 'Mostrar apenas skills habilitadas')
     .action(async (options) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -102,10 +99,7 @@ skillCommand
     .option('-t, --tags <tags>', 'Tags separadas por vírgula')
     .option('-o, --output <path>', 'Diretório de saída')
     .action(async (name, options) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -210,10 +204,7 @@ skillCommand
     .command('install <source>')
     .description('Instalar uma skill (caminho local ou URL GitHub)')
     .action(async (source) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -250,10 +241,7 @@ skillCommand
     .description('Desinstalar uma skill')
     .option('-f, --force', 'Não pedir confirmação')
     .action(async (name, options) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -294,10 +282,7 @@ skillCommand
     .command('toggle <name>')
     .description('Habilitar/Desabilitar uma skill')
     .action(async (name) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -339,11 +324,17 @@ skillCommand
         // 2. Diretório atual
         searchPaths.push(join(process.cwd(), '.pagia', 'skills'));
 
-        // 3. Diretório de instalação do PAGIA (para uso global)
+        // 3. Diretório de instalação do PAGIA (local backend)
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = dirname(__filename);
         const pagiaInstallDir = join(__dirname, '..', '..', '.pagia', 'skills');
         searchPaths.push(pagiaInstallDir);
+
+        // 4. Raiz do Monorepo (se estiver rodando de apps/backend)
+        const monorepoRoot = join(__dirname, '..', '..', '..', '..', '.pagia', 'skills');
+        searchPaths.push(monorepoRoot);
+        // Fallback robusto para este ambiente (com path separator correto)
+        searchPaths.push('C:\\projetos2025\\PAGIA\\.pagia\\skills');
 
         let skill: any = null;
         let installed: any = null;
@@ -392,10 +383,7 @@ skillCommand
     .command('search <query>')
     .description('Buscar skills por termo')
     .action(async (query) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -422,10 +410,7 @@ skillCommand
     .command('info <name>')
     .description('Mostrar informações detalhadas de uma skill')
     .action(async (name) => {
-        const configManager = getConfigManager();
-        const skillsPath = configManager.isInitialized()
-            ? join(configManager.getPagiaFolder(), 'skills')
-            : join(process.cwd(), '.pagia', 'skills');
+        const skillsPath = getResolvedSkillsPath();
 
         skillRegistry.setSkillsPath(skillsPath);
 
@@ -501,9 +486,11 @@ async function runSkillWithAI(
 
         if (options.ollama) {
             // Usar Ollama - prioridade: CLI > env > skill > default
-            const ollamaModel = options.ollamaModel !== 'gemma2'
-                ? options.ollamaModel
-                : process.env.OLLAMA_MODEL || skill.frontmatter.model?.name || 'llama3.1:latest';
+            let ollamaModel = options.ollamaModel;
+            // Use default preference if 'gemma2' (CLI default) is passed
+            if (ollamaModel === 'gemma2') {
+                ollamaModel = process.env.OLLAMA_MODEL || skill.frontmatter.model?.name || 'llama3.1:latest';
+            }
             aiConfig = {
                 type: 'ollama',
                 model: ollamaModel,
@@ -578,4 +565,14 @@ async function runSkillWithAI(
         logger.error(error instanceof Error ? error.message : String(error));
         process.exit(1);
     }
+}
+
+/**
+ * Helper to resolve skills path based on configuration
+ */
+function getResolvedSkillsPath(): string {
+    const configManager = getConfigManager();
+    return configManager.isInitialized()
+        ? join(configManager.getPagiaFolder(), 'skills')
+        : join(process.cwd(), '.pagia', 'skills');
 }

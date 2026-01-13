@@ -19,7 +19,7 @@ function generateZhipuToken(apiKey: string): string {
     };
 
     // Zhipu requires header with sign_type: "SIGN"
-    return jwt.sign(payload, secret, { algorithm: 'HS256', header: { sign_type: 'SIGN' } });
+    return jwt.sign(payload, secret, { algorithm: 'HS256' });
 }
 
 export async function generateZhipu(prompt: string, apiKey: string, modelName: string): Promise<string> {

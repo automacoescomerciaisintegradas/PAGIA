@@ -278,7 +278,7 @@ Comandos especiais:
             history.push(`Assistente: ${response}`);
             saveSession(sessionId, history);
         } catch (error) {
-            const errorMessage = `Erro ao executar Gemini: ${error.message}`;
+            const errorMessage = `Erro ao executar Gemini: ${(error as Error).message}`;
             process.stdout.write(errorMessage + '\n');
             history.push(`Erro: ${errorMessage}`);
             saveSession(sessionId, history);
